@@ -3,13 +3,20 @@
 namespace App\Services\MarketAnalysis;
 
 use App\Models\CompetitorAnalysis;
+use App\Services\SocialBladeService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class CompetitorAnalysisService
 {
-    protected $fbAccessToken;
+    protected ?string $fbAccessToken = null;
+    protected SocialBladeService $socialBlade;
+
+    public function __construct()
+    {
+        $this->socialBlade = new SocialBladeService();
+    }
 
     public function __construct()
     {
@@ -49,9 +56,10 @@ class CompetitorAnalysisService
                 $pageData['manual_input'] = true;
             }
             
+            $followerCount = $pageData['followers_count'] ?? $pageData['fan_count'] ?? 0;
             $posts = $this->fetchRecentPosts($pageId);
-            $engagementMetrics = $this->calculateEngagementMetrics($posts);
-            $postingPatterns = $this->analyzePostingPatterns($posts);
+            $engagementMetrics = $this->calculateEngagementMetrics($posts, $followerCount);
+            $postingPatterns = $this->analyzePostingPatterns($posts, $followerCount);
             $contentStrategy = $this->analyzeContentStrategy($posts);
             
             // Save or update cache
@@ -101,56 +109,198 @@ class CompetitorAnalysisService
      */
     protected function fetchPageData(string $pageId): array
     {
-        Log::info("Fetching page data for: {$pageId}");
+        Log::info("========== COLLECTING DATA FROM ALL SOURCES FOR: {$pageId} ==========");
         
+        $allSourcesData = [
+            'facebook_api' => null,
+            'social_blade' => null,
+            'web_scraping' => null,
+        ];
+        
+        // 1. TRY FACEBOOK API (with token)
         try {
-            // Try with access token first
             if ($this->fbAccessToken) {
-                Log::info("Trying with access token");
+                Log::info("Source 1: Trying Facebook API with access token");
                 $response = Http::get("https://graph.facebook.com/v18.0/{$pageId}", [
                     'fields' => 'id,name,category,followers_count,fan_count,about,website,verification_status',
                     'access_token' => $this->fbAccessToken,
                 ]);
                 
-                Log::info("Facebook API Response (with token): " . $response->status() . " - " . $response->body());
-                
                 if ($response->successful()) {
                     $data = $response->json();
-                    // Use fan_count if followers_count is not available
                     if (!isset($data['followers_count']) && isset($data['fan_count'])) {
                         $data['followers_count'] = $data['fan_count'];
                     }
-                    Log::info("Successfully fetched with token", $data);
-                    return $data;
+                    $allSourcesData['facebook_api'] = $data;
+                    Log::info("✓ Facebook API SUCCESS", ['followers' => $data['followers_count'] ?? 0]);
                 }
-                
-                Log::warning('Facebook API error with token: ' . $response->body());
             }
-            
-            // Try without access token (public data) - more limited but works
-            Log::info("Trying without access token (public API)");
-            $response = Http::get("https://graph.facebook.com/v18.0/{$pageId}", [
-                'fields' => 'id,name,fan_count,about',
-            ]);
-            
-            Log::info("Facebook API Response (no token): " . $response->status() . " - " . $response->body());
-            
-            if ($response->successful()) {
-                $data = $response->json();
-                // Map fan_count to followers_count
-                $data['followers_count'] = $data['fan_count'] ?? 0;
-                Log::info("Successfully fetched without token", $data);
-                return $data;
-            }
-            
-            throw new \Exception('Failed to fetch page data: ' . $response->body());
         } catch (\Exception $e) {
-            Log::error('Facebook API failed for page ' . $pageId . ': ' . $e->getMessage());
-            
-            // Use web scraping as fallback to get public follower count
-            Log::info("Falling back to web scraping");
-            return $this->scrapeFacebookPageData($pageId);
+            Log::warning("✗ Facebook API failed: " . $e->getMessage());
         }
+        
+        // 2. TRY FACEBOOK API (without token - public)
+        if (!$allSourcesData['facebook_api']) {
+            try {
+                Log::info("Source 2: Trying Facebook API without token (public)");
+                $response = Http::get("https://graph.facebook.com/v18.0/{$pageId}", [
+                    'fields' => 'id,name,fan_count,about',
+                ]);
+                
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $data['followers_count'] = $data['fan_count'] ?? 0;
+                    $allSourcesData['facebook_api'] = $data;
+                    Log::info("✓ Facebook API PUBLIC SUCCESS", ['followers' => $data['followers_count']]);
+                }
+            } catch (\Exception $e) {
+                Log::warning("✗ Facebook API public failed: " . $e->getMessage());
+            }
+        }
+        
+        // 3. TRY SOCIAL BLADE API
+        try {
+            Log::info("Source 3: Trying Social Blade API");
+            $socialBladeData = $this->socialBlade->getFacebookStats($pageId);
+            
+            if ($socialBladeData && isset($socialBladeData['followers'])) {
+                $allSourcesData['social_blade'] = $socialBladeData;
+                Log::info("✓ Social Blade SUCCESS", ['followers' => $socialBladeData['followers']]);
+            }
+        } catch (\Exception $e) {
+            Log::warning("✗ Social Blade failed: " . $e->getMessage());
+        }
+        
+        // 4. TRY WEB SCRAPING
+        try {
+            Log::info("Source 4: Trying web scraping");
+            $scrapedData = $this->scrapeFacebookPageData($pageId);
+            
+            if (isset($scrapedData['followers_count']) && $scrapedData['followers_count'] > 0) {
+                $allSourcesData['web_scraping'] = $scrapedData;
+                Log::info("✓ Web Scraping SUCCESS", ['followers' => $scrapedData['followers_count']]);
+            }
+        } catch (\Exception $e) {
+            Log::warning("✗ Web Scraping failed: " . $e->getMessage());
+        }
+        
+        // MERGE AND ANALYZE ALL DATA
+        return $this->mergeMultiSourceData($pageId, $allSourcesData);
+    }
+    
+    /**
+     * Merge data from multiple sources intelligently
+     */
+    protected function mergeMultiSourceData(string $pageId, array $sources): array
+    {
+        Log::info("========== MERGING DATA FROM MULTIPLE SOURCES ==========");
+        
+        $mergedData = [
+            'id' => $pageId,
+            'name' => $pageId,
+            'followers_count' => 0,
+            'fan_count' => 0,
+            'data_sources' => [],
+            'data_quality' => 'none',
+            'cross_validation' => [],
+        ];
+        
+        // Collect all follower counts for cross-validation
+        $followerCounts = [];
+        
+        // Process Facebook API data (highest priority for accuracy)
+        if ($sources['facebook_api']) {
+            $fb = $sources['facebook_api'];
+            $mergedData['name'] = $fb['name'] ?? $pageId;
+            $mergedData['category'] = $fb['category'] ?? null;
+            $mergedData['about'] = $fb['about'] ?? '';
+            $mergedData['website'] = $fb['website'] ?? null;
+            $mergedData['verification_status'] = $fb['verification_status'] ?? null;
+            $mergedData['followers_count'] = $fb['followers_count'] ?? 0;
+            $mergedData['fan_count'] = $fb['fan_count'] ?? 0;
+            $mergedData['data_sources'][] = 'facebook_api';
+            $mergedData['data_quality'] = 'high';
+            
+            if ($mergedData['followers_count'] > 0) {
+                $followerCounts['facebook_api'] = $mergedData['followers_count'];
+            }
+        }
+        
+        // Process Social Blade data
+        if ($sources['social_blade']) {
+            $sb = $sources['social_blade'];
+            $mergedData['data_sources'][] = 'social_blade';
+            
+            // Use Social Blade as primary if Facebook failed
+            if (!$sources['facebook_api']) {
+                $mergedData['name'] = $sb['username'] ?? $pageId;
+                $mergedData['followers_count'] = $sb['followers'] ?? 0;
+                $mergedData['fan_count'] = $sb['followers'] ?? 0;
+                $mergedData['data_quality'] = 'medium';
+            }
+            
+            // Add to cross-validation
+            if (isset($sb['followers']) && $sb['followers'] > 0) {
+                $followerCounts['social_blade'] = $sb['followers'];
+                $mergedData['social_blade_engagement_rate'] = $sb['engagement_rate'] ?? null;
+            }
+        }
+        
+        // Process web scraping data
+        if ($sources['web_scraping']) {
+            $ws = $sources['web_scraping'];
+            $mergedData['data_sources'][] = 'web_scraping';
+            
+            // Use scraped data if no better source available
+            if (!$sources['facebook_api'] && !$sources['social_blade']) {
+                $mergedData['name'] = $ws['name'] ?? $pageId;
+                $mergedData['followers_count'] = $ws['followers_count'] ?? 0;
+                $mergedData['fan_count'] = $ws['followers_count'] ?? 0;
+                $mergedData['data_quality'] = 'low';
+            }
+            
+            // Add to cross-validation
+            if (isset($ws['followers_count']) && $ws['followers_count'] > 0) {
+                $followerCounts['web_scraping'] = $ws['followers_count'];
+            }
+        }
+        
+        // CROSS-VALIDATION: Compare data from different sources
+        if (count($followerCounts) > 1) {
+            $mergedData['cross_validation'] = $followerCounts;
+            
+            // Calculate variance to assess data reliability
+            $avg = array_sum($followerCounts) / count($followerCounts);
+            $variance = 0;
+            foreach ($followerCounts as $count) {
+                $variance += pow($count - $avg, 2);
+            }
+            $variance = $variance / count($followerCounts);
+            $stdDev = sqrt($variance);
+            $coefficientOfVariation = ($avg > 0) ? ($stdDev / $avg) * 100 : 0;
+            
+            $mergedData['data_reliability'] = [
+                'sources_count' => count($followerCounts),
+                'average' => round($avg),
+                'std_deviation' => round($stdDev),
+                'variation_percentage' => round($coefficientOfVariation, 2),
+                'status' => $coefficientOfVariation < 5 ? 'highly_reliable' : 
+                           ($coefficientOfVariation < 15 ? 'reliable' : 'needs_verification'),
+            ];
+            
+            Log::info("Cross-validation results", $mergedData['data_reliability']);
+        }
+        
+        // Store raw data from all sources for future reference
+        $mergedData['raw_sources_data'] = $sources;
+        
+        Log::info("Final merged data", [
+            'sources' => $mergedData['data_sources'],
+            'followers' => $mergedData['followers_count'],
+            'quality' => $mergedData['data_quality'],
+        ]);
+        
+        return $mergedData;
     }
     
     /**
@@ -268,9 +418,25 @@ class CompetitorAnalysisService
     /**
      * Calculate engagement metrics from posts
      */
-    protected function calculateEngagementMetrics(array $posts): array
+    protected function calculateEngagementMetrics(array $posts, int $followerCount = 0): array
     {
         if (empty($posts)) {
+            // If we can't fetch posts but have follower count, provide estimated metrics
+            if ($followerCount > 0) {
+                // Industry average engagement rate is 0.5-3%
+                $estimatedEngagementRate = 1.5; // 1.5% average
+                $estimatedEngagement = intval($followerCount * ($estimatedEngagementRate / 100));
+                
+                return [
+                    'avg_likes' => intval($estimatedEngagement * 0.70), // 70% likes
+                    'avg_comments' => intval($estimatedEngagement * 0.20), // 20% comments
+                    'avg_shares' => intval($estimatedEngagement * 0.10), // 10% shares
+                    'avg_engagement_rate' => $estimatedEngagementRate,
+                    'total_posts' => 0,
+                    'estimated' => true,
+                ];
+            }
+            
             return [
                 'avg_likes' => 0,
                 'avg_comments' => 0,
@@ -305,9 +471,22 @@ class CompetitorAnalysisService
     /**
      * Analyze posting patterns
      */
-    protected function analyzePostingPatterns(array $posts): array
+    protected function analyzePostingPatterns(array $posts, int $followerCount = 0): array
     {
         if (empty($posts)) {
+            // Provide estimated patterns based on industry standards
+            if ($followerCount > 0) {
+                return [
+                    'posting_frequency' => '3-5 posts per week (estimated)',
+                    'best_times' => [
+                        '12:00 PM - Peak engagement time',
+                        '3:00 PM - Afternoon activity',
+                        '7:00 PM - Evening browsing',
+                    ],
+                    'estimated' => true,
+                ];
+            }
+            
             return ['posting_frequency' => 'Unknown', 'best_times' => []];
         }
         

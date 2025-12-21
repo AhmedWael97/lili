@@ -49,6 +49,12 @@ return [
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
 
+    'socialblade' => [
+        'client_id' => env('SOCIALBLADE_CLIENT_ID'),
+        'token' => env('SOCIALBLADE_TOKEN'),
+        'base_url' => 'https://api.socialblade.com/v2',
+    ],
+
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
         'organization' => env('OPENAI_ORGANIZATION'),
