@@ -16,10 +16,6 @@ class CompetitorAnalysisService
     public function __construct()
     {
         $this->socialBlade = new SocialBladeService();
-    }
-
-    public function __construct()
-    {
         $this->fbAccessToken = config('services.facebook.app_access_token');
     }
 
