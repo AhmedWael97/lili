@@ -16,7 +16,7 @@
           appId      : '{{ config('services.facebook.client_id') }}',
           cookie     : true,
           xfbml      : true,
-          version    : 'v18.0'
+          version    : 'v24.0'
         });
           
         FB.AppEvents.logPageView();
