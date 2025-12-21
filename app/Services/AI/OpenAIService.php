@@ -50,10 +50,10 @@ class OpenAIService
     /**
      * Parse JSON response
      */
-    public function generateJSON(string $prompt, string $systemPrompt = ''): array
+    public function generateJSON(string $prompt, string $systemPrompt = '', string $model = 'gpt-4o'): array
     {
         $response = $this->client->chat()->create([
-            'model' => 'gpt-4o',
+            'model' => $model,
             'messages' => [
                 ['role' => 'system', 'content' => $systemPrompt ?: 'You are a helpful assistant that responds in JSON format.'],
                 ['role' => 'user', 'content' => $prompt],

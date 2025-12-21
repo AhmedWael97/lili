@@ -38,6 +38,14 @@ class AgentTypesSeeder extends Seeder
                 'Content Generation',
                 'Ad Campaign Management',
             ],
+            'ai_model' => 'gpt-4o', // Strategy needs deep reasoning
+            'model_config' => [
+                'temperature' => 0.7,
+                'max_tokens' => 4000,
+                'strategy_model' => 'gpt-4o',
+                'copywriting_model' => 'gpt-4o-mini',
+                'creative_model' => 'gpt-4o-mini',
+            ],
             'sort_order' => 1,
         ]);
 
@@ -59,6 +67,11 @@ class AgentTypesSeeder extends Seeder
                 'Security Testing',
                 'Quality Metrics',
                 'Test Documentation',
+            ],
+            'ai_model' => 'gpt-4o', // Technical analysis needs reasoning
+            'model_config' => [
+                'temperature' => 0.5,
+                'max_tokens' => 3000,
             ],
             'sort_order' => 2,
         ]);
@@ -82,6 +95,11 @@ class AgentTypesSeeder extends Seeder
                 'API Development',
                 'Technical Documentation',
             ],
+            'ai_model' => 'gpt-4o', // Code needs reasoning and accuracy
+            'model_config' => [
+                'temperature' => 0.3,
+                'max_tokens' => 4000,
+            ],
             'sort_order' => 3,
         ]);
 
@@ -104,6 +122,11 @@ class AgentTypesSeeder extends Seeder
                 'Investment Analysis',
                 'Audit Support',
             ],
+            'ai_model' => 'gpt-4o', // Financial analysis needs accuracy
+            'model_config' => [
+                'temperature' => 0.2,
+                'max_tokens' => 3000,
+            ],
             'sort_order' => 4,
         ]);
 
@@ -125,6 +148,11 @@ class AgentTypesSeeder extends Seeder
                 'Support Team Training',
                 'FAQ Development',
                 'Live Chat Support',
+            ],
+            'ai_model' => 'gpt-4o-mini', // Customer service can be fast
+            'model_config' => [
+                'temperature' => 0.8,
+                'max_tokens' => 2000,
             ],
             'sort_order' => 5,
         ]);

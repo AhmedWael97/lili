@@ -11,12 +11,12 @@ class CreativeAgentService
     /**
      * Generate image prompt for DALL-E
      */
-    public function generateImagePrompt(array $context): string
+    public function generateImagePrompt(array $context, string $model = 'gpt-4o-mini'): string
     {
         $systemPrompt = $this->getSystemPrompt();
         $userPrompt = $this->buildPrompt($context);
 
-        $result = $this->openAI->generateJSON($userPrompt, $systemPrompt);
+        $result = $this->openAI->generateJSON($userPrompt, $systemPrompt, $model);
         
         return $result['dalle_prompt'] ?? '';
     }
@@ -24,12 +24,21 @@ class CreativeAgentService
     /**
      * Generate image directly
      */
-    public function generateImage(array $context): string
+    public function generateImage(array $context, string $model = 'gpt-4o-mini'): string
     {
-        $prompt = $this->generateImagePrompt($context);
+        $prompt = $this->generateImagePrompt($context, $model);
+        
+        // Determine size based on aspect ratio
+        $aspectRatio = $context['aspect_ratio'] ?? '1:1';
+        $size = match($aspectRatio) {
+            '16:9' => '1792x1024',
+            '4:5' => '1024x1280',
+            '9:16' => '1024x1792',
+            default => '1024x1024',
+        };
         
         return $this->openAI->generateImage($prompt, [
-            'size' => '1024x1024',
+            'size' => $size,
             'quality' => 'standard',
         ]);
     }
@@ -60,6 +69,14 @@ PROMPT;
      */
     protected function buildPrompt(array $context): string
     {
+        $aspectRatio = $context['aspect_ratio'] ?? '1:1';
+        $dimensions = match($aspectRatio) {
+            '16:9' => '1792x1024',
+            '4:5' => '1024x1280',
+            '9:16' => '1024x1792',
+            default => '1024x1024',
+        };
+        
         return <<<PROMPT
 Brand Visual Guidelines:
 - Brand Name: {$context['brand_name']}
@@ -67,6 +84,9 @@ Brand Visual Guidelines:
 - Visual Style: {$context['visual_style']}
 - Logo Usage: {$context['logo_usage']}
 - Image Mood: {$context['image_mood']}
+- Composition: {$context['image_composition']}
+- Preferred Elements: {$context['preferred_elements']}
+- Avoid These Elements: {$context['avoid_elements']}
 
 Content Context:
 - Post Caption: {$context['post_caption']}
@@ -74,18 +94,21 @@ Content Context:
 - Target Audience: {$context['target_audience']}
 
 Technical Requirements:
-- Platform: Facebook (recommended 1200x630px)
+- Platform: Facebook
 - Format: PNG/JPEG
-- Text in Image: {$context['text_allowed']}
+- Dimensions: {$dimensions}
+- Text in Image: {$context['text_in_image']}
 
 Task: {$context['task_description']}
 
 Generate DALL-E prompt in JSON format with:
-- dalle_prompt (detailed image generation prompt)
+- dalle_prompt (detailed, descriptive image generation prompt - minimum 150 characters)
 - alternative_prompts (array of 2-3 alternatives)
 - recommended_dimensions
 - accessibility_notes
 - brand_alignment
+
+Remember: DALL-E prompts should be very descriptive and detailed for best results.
 PROMPT;
     }
 }

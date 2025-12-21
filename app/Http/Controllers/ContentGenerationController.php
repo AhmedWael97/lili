@@ -60,6 +60,11 @@ class ContentGenerationController extends Controller
         
         $page = $this->pageRepo->find($validated['facebook_page_id']);
         $brandSettings = $user->brandSetting;
+        
+        // Get agent type for model configuration
+        $agentType = \App\Models\AgentType::where('code', 'marketing')->first();
+        $copywritingModel = $agentType ? ($agentType->model_config['copywriting_model'] ?? $agentType->ai_model) : 'gpt-4o-mini';
+        $creativeModel = $agentType ? ($agentType->model_config['creative_model'] ?? $agentType->ai_model) : 'gpt-4o-mini';
 
         // Build context for AI agents using brand settings
         $context = [
@@ -83,7 +88,7 @@ class ContentGenerationController extends Controller
         ];
 
         // Step 1: Generate caption with Copywriter Agent
-        $copyResult = $this->copywriter->generateCaption($context);
+        $copyResult = $this->copywriter->generateCaption($context, $copywritingModel);
 
         $content = [
             'caption' => $copyResult['caption'] ?? '',
@@ -108,7 +113,7 @@ class ContentGenerationController extends Controller
             ]);
 
             try {
-                $imageUrl = $this->creative->generateImage($imageContext);
+                $imageUrl = $this->creative->generateImage($imageContext, $creativeModel);
                 
                 // Apply logo overlay if enabled and logo exists
                 if ($brandSettings && $brandSettings->logo_in_images && $brandSettings->logo_path && $imageUrl) {

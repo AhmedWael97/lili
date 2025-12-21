@@ -11,12 +11,12 @@ class CopywriterAgentService
     /**
      * Generate post caption
      */
-    public function generateCaption(array $context): array
+    public function generateCaption(array $context, string $model = 'gpt-4o-mini'): array
     {
         $systemPrompt = $this->getSystemPrompt();
         $userPrompt = $this->buildPrompt($context);
 
-        return $this->openAI->generateJSON($userPrompt, $systemPrompt);
+        return $this->openAI->generateJSON($userPrompt, $systemPrompt, $model);
     }
 
     /**
@@ -34,7 +34,7 @@ class CopywriterAgentService
     /**
      * Write copy from strategy calendar day
      */
-    public function writeCopyFromStrategy(array $context): array
+    public function writeCopyFromStrategy(array $context, string $model = 'gpt-4o-mini'): array
     {
         $context['task_description'] = "Write engaging Facebook post about: {$context['topic']}. Objective: {$context['objective']}";
         $context['voice_characteristics'] = $context['voice_characteristics'] ?? 'engaging, authentic';
@@ -43,7 +43,7 @@ class CopywriterAgentService
         $context['required_elements'] = $context['include_hashtags'] ? 'hashtags' : '';
         $context['cta_required'] = $context['include_cta'] ?? true;
         
-        return $this->generateCaption($context);
+        return $this->generateCaption($context, $model);
     }
 
     /**

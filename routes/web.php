@@ -77,11 +77,33 @@ Route::middleware(['auth', 'subscription.active'])->prefix('agents')->name('agen
     Route::get('/', [AgentController::class, 'index'])->name('index');
     Route::get('/dashboard', [DashboardController::class, 'agentDashboard'])->name('dashboard');
     Route::post('/{agentCode}/activate', [AgentController::class, 'activate'])->name('activate');
+    Route::get('/{agentCode}/use', [AgentController::class, 'use'])->name('use');
     Route::delete('/{agentCode}/deactivate', [AgentController::class, 'deactivate'])->name('deactivate');
+    
+    // Agent Onboarding routes
+    Route::get('/{agentCode}/onboarding', [\App\Http\Controllers\AgentOnboardingController::class, 'show'])->name('onboarding');
+    Route::post('/{agentCode}/onboarding', [\App\Http\Controllers\AgentOnboardingController::class, 'store'])->name('onboarding.store');
+    Route::get('/{agentCode}/onboarding/edit', [\App\Http\Controllers\AgentOnboardingController::class, 'edit'])->name('onboarding.edit');
+    Route::put('/{agentCode}/onboarding', [\App\Http\Controllers\AgentOnboardingController::class, 'update'])->name('onboarding.update');
+    
     Route::get('/{agentCode}/analytics', [AgentController::class, 'analytics'])->name('analytics');
     Route::post('/interaction/{interactionId}/feedback', [AgentController::class, 'feedback'])->name('feedback');
     Route::get('/interaction/{interactionId}', [AgentController::class, 'interaction'])->name('interaction');
     Route::get('/{agentCode}/export', [AgentController::class, 'exportTrainingData'])->name('export');
+});
+
+// QA Agent routes
+Route::middleware(['auth', 'subscription.active'])->prefix('qa-agent')->name('qa-agent.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\QAAgentController::class, 'index'])->name('index');
+    Route::post('/test-plan', [\App\Http\Controllers\QAAgentController::class, 'generateTestPlan'])->name('generate-test-plan');
+    Route::post('/analyze-bugs', [\App\Http\Controllers\QAAgentController::class, 'analyzeBugs'])->name('analyze-bugs');
+    Route::post('/generate-tests', [\App\Http\Controllers\QAAgentController::class, 'generateAutomatedTests'])->name('generate-tests');
+    Route::post('/test-cases', [\App\Http\Controllers\QAAgentController::class, 'generateTestCases'])->name('test-cases');
+    Route::post('/security-analysis', [\App\Http\Controllers\QAAgentController::class, 'analyzeSecurityVulnerabilities'])->name('security-analysis');
+    Route::post('/bug-report', [\App\Http\Controllers\QAAgentController::class, 'generateBugReport'])->name('bug-report');
+    Route::post('/review-pr', [\App\Http\Controllers\QAAgentController::class, 'reviewPullRequest'])->name('review-pr');
+    Route::post('/execute-live-test', [\App\Http\Controllers\QAAgentController::class, 'executeLiveTest'])->name('execute-live-test');
+    Route::post('/web-test-plan', [\App\Http\Controllers\QAAgentController::class, 'generateWebTestPlan'])->name('web-test-plan');
 });
 
 // Admin routes

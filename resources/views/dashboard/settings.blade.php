@@ -4,14 +4,14 @@
 @section('page-title', 'Settings')
 
 @section('content')
-<div class="max-w-4xl">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="bg-white rounded-lg shadow mb-6">
-        <div class="px-6 py-4 border-b border-gray-200">
+        <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Profile Information</h3>
         </div>
-        <div class="p-6">
+        <div class="p-4 sm:p-6">
             <form class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
                         <input type="text" value="{{ auth()->user()->name }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
@@ -33,48 +33,48 @@
     </div>
 
     <div class="bg-white rounded-lg shadow mb-6">
-        <div class="px-6 py-4 border-b border-gray-200">
+        <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Brand Settings</h3>
         </div>
-        <div class="p-6">
+        <div class="p-4 sm:p-6">
             <form method="POST" action="{{ route('dashboard.settings.update') }}" enctype="multipart/form-data" class="space-y-4">
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Brand Name</label>
-                    <input type="text" name="brand_name" value="{{ auth()->user()->brandSetting->brand_name ?? '' }}" placeholder="Your brand name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" name="brand_name" value="{{ $agentConfig->business_name ?? auth()->user()->brandSetting->brand_name ?? '' }}" placeholder="Your brand name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Industry</label>
-                    <input type="text" name="industry" value="{{ auth()->user()->brandSetting->industry ?? '' }}" placeholder="e.g., E-commerce, Healthcare, Technology" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" name="industry" value="{{ $agentConfig->industry ?? auth()->user()->brandSetting->industry ?? '' }}" placeholder="e.g., E-commerce, Healthcare, Technology" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Brand Tone</label>
                     <select name="brand_tone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                        <option value="professional" {{ (auth()->user()->brandSetting->brand_tone ?? 'professional') == 'professional' ? 'selected' : '' }}>Professional</option>
-                        <option value="casual" {{ (auth()->user()->brandSetting->brand_tone ?? '') == 'casual' ? 'selected' : '' }}>Casual</option>
-                        <option value="friendly" {{ (auth()->user()->brandSetting->brand_tone ?? '') == 'friendly' ? 'selected' : '' }}>Friendly</option>
-                        <option value="authoritative" {{ (auth()->user()->brandSetting->brand_tone ?? '') == 'authoritative' ? 'selected' : '' }}>Authoritative</option>
+                        <option value="professional" {{ ($agentConfig->brand_tone ?? auth()->user()->brandSetting->brand_tone ?? 'professional') == 'professional' ? 'selected' : '' }}>Professional</option>
+                        <option value="casual" {{ ($agentConfig->brand_tone ?? auth()->user()->brandSetting->brand_tone ?? '') == 'casual' ? 'selected' : '' }}>Casual</option>
+                        <option value="friendly" {{ ($agentConfig->brand_tone ?? auth()->user()->brandSetting->brand_tone ?? '') == 'friendly' ? 'selected' : '' }}>Friendly</option>
+                        <option value="authoritative" {{ ($agentConfig->brand_tone ?? auth()->user()->brandSetting->brand_tone ?? '') == 'authoritative' ? 'selected' : '' }}>Authoritative</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Voice Characteristics</label>
-                    <input type="text" name="voice_characteristics" value="{{ auth()->user()->brandSetting->voice_characteristics ?? '' }}" placeholder="e.g., engaging, authentic, witty" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" name="voice_characteristics" value="{{ $agentConfig->brand_personality ?? auth()->user()->brandSetting->voice_characteristics ?? '' }}" placeholder="e.g., engaging, authentic, witty" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
-                    <textarea name="target_audience" rows="3" placeholder="Describe your target audience..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">{{ auth()->user()->brandSetting->target_audience ?? '' }}</textarea>
+                    <textarea name="target_audience" rows="3" placeholder="Describe your target audience..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">{{ $agentConfig && $agentConfig->target_audience ? ($agentConfig->target_audience['age'] ?? '') . ', ' . ($agentConfig->target_audience['location'] ?? '') . ', ' . ($agentConfig->target_audience['interests'] ?? '') : (auth()->user()->brandSetting->target_audience ?? '') }}</textarea>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Business Goals</label>
-                    <textarea name="business_goals" rows="3" placeholder="What are your marketing goals?" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">{{ auth()->user()->brandSetting->business_goals ?? '' }}</textarea>
+                    <textarea name="business_goals" rows="3" placeholder="What are your marketing goals?" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">{{ $agentConfig && $agentConfig->marketing_goals ? implode(', ', $agentConfig->marketing_goals) : (auth()->user()->brandSetting->business_goals ?? '') }}</textarea>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Key Messages</label>
-                    <textarea name="key_messages" rows="2" placeholder="Important messages to convey" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">{{ auth()->user()->brandSetting->key_messages ?? '' }}</textarea>
+                    <textarea name="key_messages" rows="2" placeholder="Important messages to convey" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">{{ $agentConfig->unique_value_proposition ?? auth()->user()->brandSetting->key_messages ?? '' }}</textarea>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Words to Avoid</label>
-                    <input type="text" name="forbidden_words" value="{{ auth()->user()->brandSetting->forbidden_words ?? '' }}" placeholder="Comma-separated words" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" name="forbidden_words" value="{{ $agentConfig->topics_to_avoid ?? auth()->user()->brandSetting->forbidden_words ?? '' }}" placeholder="Comma-separated words" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                     <p class="text-xs text-gray-500 mt-1">Words or phrases to never use in content</p>
                 </div>
                 <div>
@@ -136,6 +136,80 @@
                         <p class="text-xs text-gray-500 mt-1">Used by AI to suggest budget-appropriate tactics</p>
                     </div>
                 </div>
+                
+                <!-- Image Generation Preferences -->
+                <div class="border-t border-gray-200 pt-6 mt-6">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-4">📸 Image Generation Preferences</h4>
+                    <p class="text-xs text-gray-500 mb-4">Set your preferences once, and all AI-generated images will match your brand style automatically</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Image Style</label>
+                            <select name="image_style" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select Style...</option>
+                                <option value="photographic" {{ (auth()->user()->brandSetting->image_style ?? '') == 'photographic' ? 'selected' : '' }}>Photographic (Realistic)</option>
+                                <option value="illustration" {{ (auth()->user()->brandSetting->image_style ?? '') == 'illustration' ? 'selected' : '' }}>Illustration</option>
+                                <option value="minimalist" {{ (auth()->user()->brandSetting->image_style ?? '') == 'minimalist' ? 'selected' : '' }}>Minimalist</option>
+                                <option value="abstract" {{ (auth()->user()->brandSetting->image_style ?? '') == 'abstract' ? 'selected' : '' }}>Abstract</option>
+                                <option value="3d-render" {{ (auth()->user()->brandSetting->image_style ?? '') == '3d-render' ? 'selected' : '' }}>3D Render</option>
+                                <option value="flat-design" {{ (auth()->user()->brandSetting->image_style ?? '') == 'flat-design' ? 'selected' : '' }}>Flat Design</option>
+                                <option value="vintage" {{ (auth()->user()->brandSetting->image_style ?? '') == 'vintage' ? 'selected' : '' }}>Vintage</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Image Mood</label>
+                            <select name="image_mood" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select Mood...</option>
+                                <option value="professional" {{ (auth()->user()->brandSetting->image_mood ?? '') == 'professional' ? 'selected' : '' }}>Professional</option>
+                                <option value="energetic" {{ (auth()->user()->brandSetting->image_mood ?? '') == 'energetic' ? 'selected' : '' }}>Energetic</option>
+                                <option value="calm" {{ (auth()->user()->brandSetting->image_mood ?? '') == 'calm' ? 'selected' : '' }}>Calm & Peaceful</option>
+                                <option value="playful" {{ (auth()->user()->brandSetting->image_mood ?? '') == 'playful' ? 'selected' : '' }}>Playful</option>
+                                <option value="elegant" {{ (auth()->user()->brandSetting->image_mood ?? '') == 'elegant' ? 'selected' : '' }}>Elegant</option>
+                                <option value="bold" {{ (auth()->user()->brandSetting->image_mood ?? '') == 'bold' ? 'selected' : '' }}>Bold & Dramatic</option>
+                                <option value="warm" {{ (auth()->user()->brandSetting->image_mood ?? '') == 'warm' ? 'selected' : '' }}>Warm & Friendly</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Text in Images</label>
+                            <select name="text_in_images" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="none" {{ (auth()->user()->brandSetting->text_in_images ?? 'minimal') == 'none' ? 'selected' : '' }}>No Text</option>
+                                <option value="minimal" {{ (auth()->user()->brandSetting->text_in_images ?? 'minimal') == 'minimal' ? 'selected' : '' }}>Minimal Text</option>
+                                <option value="prominent" {{ (auth()->user()->brandSetting->text_in_images ?? 'minimal') == 'prominent' ? 'selected' : '' }}>Prominent Text</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Aspect Ratio</label>
+                            <select name="image_aspect_ratio" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="1:1" {{ (auth()->user()->brandSetting->image_aspect_ratio ?? '1:1') == '1:1' ? 'selected' : '' }}>Square (1:1) - Best for Instagram/Facebook</option>
+                                <option value="16:9" {{ (auth()->user()->brandSetting->image_aspect_ratio ?? '1:1') == '16:9' ? 'selected' : '' }}>Landscape (16:9) - Best for YouTube</option>
+                                <option value="4:5" {{ (auth()->user()->brandSetting->image_aspect_ratio ?? '1:1') == '4:5' ? 'selected' : '' }}>Portrait (4:5) - Best for Instagram Feed</option>
+                                <option value="9:16" {{ (auth()->user()->brandSetting->image_aspect_ratio ?? '1:1') == '9:16' ? 'selected' : '' }}>Story (9:16) - Best for Instagram Stories</option>
+                            </select>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Composition Style</label>
+                            <input type="text" name="image_composition" value="{{ auth()->user()->brandSetting->image_composition ?? '' }}" placeholder="e.g., centered subject, rule of thirds, dynamic angles, symmetrical" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">How you want elements arranged in your images</p>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Elements</label>
+                            <input type="text" name="preferred_elements" value="{{ auth()->user()->brandSetting->preferred_elements ?? '' }}" placeholder="e.g., people, products, nature, workspace, technology, abstract shapes" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">What you want to see in your images (comma-separated)</p>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Avoid Elements</label>
+                            <input type="text" name="avoid_elements" value="{{ auth()->user()->brandSetting->avoid_elements ?? '' }}" placeholder="e.g., crowds, dark colors, busy backgrounds, stock photography look" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">What you DON'T want in your images (comma-separated)</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="flex items-center">
                     <input type="checkbox" name="logo_in_images" id="logo_in_images" value="1" {{ (auth()->user()->brandSetting->logo_in_images ?? false) ? 'checked' : '' }} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                     <label for="logo_in_images" class="ml-2 block text-sm text-gray-700">Include logo in AI-generated images</label>

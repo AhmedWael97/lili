@@ -11,12 +11,12 @@ class StrategistAgentService
     /**
      * Create content strategy
      */
-    public function createStrategy(array $context): array
+    public function createStrategy(array $context, string $model = 'gpt-4o'): array
     {
         $systemPrompt = $this->getSystemPrompt();
         $userPrompt = $this->buildPrompt($context);
 
-        return $this->openAI->generateJSON($userPrompt, $systemPrompt);
+        return $this->openAI->generateJSON($userPrompt, $systemPrompt, $model);
     }
 
     /**

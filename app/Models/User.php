@@ -102,6 +102,11 @@ class User extends Authenticatable
         return $this->hasMany(AgentInteraction::class);
     }
 
+    public function agentConfigurations()
+    {
+        return $this->hasMany(AgentConfiguration::class);
+    }
+
     /**
      * Helper methods
      */

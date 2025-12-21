@@ -4,7 +4,7 @@
 @section('page-title', 'AI Marketing Strategy Generator')
 
 @section('content')
-<div class="max-w-4xl mx-auto">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Usage Limit Warning -->
     @if(isset($usageSummary) && $usageSummary['has_subscription'])
         @php
@@ -47,14 +47,28 @@
         <form id="strategy-form" class="space-y-6">
             @csrf
             
+            <!-- Hidden fields for agent configuration -->
+            @if($agentConfig)
+                <input type="hidden" name="agent_config[business_name]" value="{{ $agentConfig->business_name }}">
+                <input type="hidden" name="agent_config[industry]" value="{{ $agentConfig->industry }}">
+                <input type="hidden" name="agent_config[products_services]" value="{{ $agentConfig->products_services }}">
+                <input type="hidden" name="agent_config[unique_value_proposition]" value="{{ $agentConfig->unique_value_proposition }}">
+                <input type="hidden" name="agent_config[brand_tone]" value="{{ $agentConfig->brand_tone }}">
+                <input type="hidden" name="agent_config[target_audience]" value="{{ json_encode($agentConfig->target_audience) }}">
+                <input type="hidden" name="agent_config[pain_points]" value="{{ $agentConfig->pain_points }}">
+                <input type="hidden" name="agent_config[marketing_goals]" value="{{ json_encode($agentConfig->marketing_goals) }}">
+                <input type="hidden" name="agent_config[focus_keywords]" value="{{ json_encode($agentConfig->focus_keywords) }}">
+                <input type="hidden" name="agent_config[topics_to_avoid]" value="{{ $agentConfig->topics_to_avoid }}">
+            @endif
+            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Brand Name</label>
                     <input type="text" name="brand_name" 
-                           value="{{ $brandSettings->brand_name ?? '' }}"
+                           value="{{ $agentConfig->business_name ?? $brandSettings->brand_name ?? '' }}"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                            placeholder="Your Brand">
-                    @if(!$brandSettings || !$brandSettings->brand_name)
+                    @if(!$agentConfig && (!$brandSettings || !$brandSettings->brand_name))
                         <p class="text-xs text-blue-600 mt-1">💡 Set this in <a href="{{ route('dashboard.settings') }}" class="underline">Settings</a> to auto-fill</p>
                     @endif
                 </div>
@@ -62,10 +76,10 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Industry</label>
                     <input type="text" name="industry" 
-                           value="{{ $brandSettings->industry ?? '' }}"
+                           value="{{ $agentConfig->industry ?? $brandSettings->industry ?? '' }}"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                            placeholder="e.g., Fashion, Tech, Food">
-                    @if(!$brandSettings || !$brandSettings->industry)
+                    @if(!$agentConfig && (!$brandSettings || !$brandSettings->industry))
                         <p class="text-xs text-blue-600 mt-1">💡 Set this in <a href="{{ route('dashboard.settings') }}" class="underline">Settings</a> to auto-fill</p>
                     @endif
                 </div>
@@ -75,8 +89,8 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
                 <textarea name="target_audience" rows="3"
                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Describe your target audience (age, interests, demographics...)">{{ $brandSettings->target_audience ?? '' }}</textarea>
-                @if(!$brandSettings || !$brandSettings->target_audience)
+                          placeholder="Describe your target audience (age, interests, demographics...)">{{ $agentConfig ? ($agentConfig->target_audience['age'] ?? '') . ', ' . ($agentConfig->target_audience['location'] ?? '') . ', ' . ($agentConfig->target_audience['interests'] ?? '') : ($brandSettings->target_audience ?? '') }}</textarea>
+                @if(!$agentConfig && (!$brandSettings || !$brandSettings->target_audience))
                     <p class="text-xs text-blue-600 mt-1">💡 Set this in <a href="{{ route('dashboard.settings') }}" class="underline">Settings</a> to auto-fill</p>
                 @endif
             </div>
@@ -85,8 +99,8 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Business Goals</label>
                 <textarea name="business_goals" rows="3"
                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="What do you want to achieve? (e.g., increase engagement, drive sales, build awareness)">{{ $brandSettings->business_goals ?? '' }}</textarea>
-                @if(!$brandSettings || !$brandSettings->business_goals)
+                          placeholder="What do you want to achieve? (e.g., increase engagement, drive sales, build awareness)">{{ $agentConfig && $agentConfig->marketing_goals ? implode(', ', $agentConfig->marketing_goals) : ($brandSettings->business_goals ?? '') }}</textarea>
+                @if(!$agentConfig && (!$brandSettings || !$brandSettings->business_goals))
                     <p class="text-xs text-blue-600 mt-1">💡 Set this in <a href="{{ route('dashboard.settings') }}" class="underline">Settings</a> to auto-fill</p>
                 @endif
             </div>
@@ -96,10 +110,10 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Brand Tone</label>
                     <select name="brand_tone" 
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                        <option value="professional" {{ ($brandSettings->brand_tone ?? 'professional') == 'professional' ? 'selected' : '' }}>Professional</option>
-                        <option value="casual" {{ ($brandSettings->brand_tone ?? '') == 'casual' ? 'selected' : '' }}>Casual</option>
-                        <option value="friendly" {{ ($brandSettings->brand_tone ?? '') == 'friendly' ? 'selected' : '' }}>Friendly</option>
-                        <option value="authoritative" {{ ($brandSettings->brand_tone ?? '') == 'authoritative' ? 'selected' : '' }}>Authoritative</option>
+                        <option value="professional" {{ ($agentConfig->brand_tone ?? $brandSettings->brand_tone ?? 'professional') == 'professional' ? 'selected' : '' }}>Professional</option>
+                        <option value="casual" {{ ($agentConfig->brand_tone ?? $brandSettings->brand_tone ?? '') == 'casual' ? 'selected' : '' }}>Casual</option>
+                        <option value="friendly" {{ ($agentConfig->brand_tone ?? $brandSettings->brand_tone ?? '') == 'friendly' ? 'selected' : '' }}>Friendly</option>
+                        <option value="authoritative" {{ ($agentConfig->brand_tone ?? $brandSettings->brand_tone ?? '') == 'authoritative' ? 'selected' : '' }}>Authoritative</option>
                     </select>
                 </div>
 
@@ -118,7 +132,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Words to Avoid (Optional)</label>
                 <input type="text" name="forbidden_words" 
-                       value="{{ $brandSettings->forbidden_words ?? '' }}"
+                       value="{{ $agentConfig->topics_to_avoid ?? $brandSettings->forbidden_words ?? '' }}"
                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                        placeholder="Comma-separated words to avoid">
             </div>

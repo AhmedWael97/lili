@@ -16,12 +16,15 @@ class AgentType extends Model
         'color',
         'is_active',
         'features',
+        'ai_model',
+        'model_config',
         'sort_order',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'features' => 'array',
+        'model_config' => 'array',
     ];
 
     /**

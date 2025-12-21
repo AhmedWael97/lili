@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AgentConfiguration;
 use App\Services\AgentService;
 use App\Services\AgentInteractionService;
 use Illuminate\Http\Request;
@@ -49,10 +50,64 @@ class AgentController extends Controller
 
             $userAgent = $this->agentService->activateAgent($user, $agentCode);
 
+            // Redirect to onboarding for marketing agents
+            if ($agentCode === 'marketing') {
+                return redirect()
+                    ->route('agents.onboarding', $agentCode)
+                    ->with('success', 'Agent activated! Please complete the onboarding to get started.');
+            }
+
             return back()->with('success', 'Agent activated successfully!');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Use an agent - check onboarding and redirect appropriately
+     */
+    public function use(string $agentCode)
+    {
+        $user = auth()->user();
+        
+        // Find the user's active agent
+        $userAgent = $user->userAgents()
+            ->whereHas('agentType', function($q) use ($agentCode) {
+                $q->where('code', $agentCode);
+            })
+            ->where('status', 'active')
+            ->first();
+
+        if (!$userAgent) {
+            return redirect()
+                ->route('agents.index')
+                ->with('error', 'Please activate this agent first.');
+        }
+
+        // Check if onboarding is required and completed for marketing agents
+        if ($agentCode === 'marketing') {
+            $configuration = AgentConfiguration::where('user_id', $user->id)
+                ->where('user_agent_id', $userAgent->id)
+                ->where('is_complete', true)
+                ->first();
+
+            if (!$configuration) {
+                return redirect()
+                    ->route('agents.onboarding', $agentCode)
+                    ->with('info', 'Please complete the setup to start using your marketing agent.');
+            }
+
+            // Onboarding complete, go to AI Studio
+            return redirect()->route('ai-studio.index');
+        }
+
+        // QA Agent
+        if ($agentCode === 'qa') {
+            return redirect()->route('qa-agent.index');
+        }
+
+        // For other agents (Developer, Accountant, etc.) - coming soon
+        return back()->with('info', 'This agent interface is coming soon!');
     }
 
     /**

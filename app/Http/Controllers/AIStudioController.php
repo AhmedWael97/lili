@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AgentConfiguration;
 use App\Services\AI\StrategistAgentService;
 use App\Services\AI\CopywriterAgentService;
 use App\Services\AI\CreativeAgentService;
@@ -33,10 +34,17 @@ class AIStudioController extends Controller
      */
     public function strategyForm()
     {
-        $brandSettings = Auth::user()->brandSetting;
-        $usageSummary = $this->usageService->getUsageSummary(Auth::id());
+        $user = Auth::user();
+        $brandSettings = $user->brandSetting;
+        $usageSummary = $this->usageService->getUsageSummary($user->id);
         
-        return view('ai-studio.strategy', compact('brandSettings', 'usageSummary'));
+        // Get marketing agent configuration if exists
+        $agentConfig = AgentConfiguration::where('user_id', $user->id)
+            ->where('agent_code', 'marketing')
+            ->where('is_complete', true)
+            ->first();
+        
+        return view('ai-studio.strategy', compact('brandSettings', 'usageSummary', 'agentConfig'));
     }
 
     /**
@@ -51,6 +59,7 @@ class AIStudioController extends Controller
             'business_goals' => 'nullable|string|max:500',
             'brand_tone' => 'nullable|in:professional,casual,friendly,authoritative',
             'days' => 'required|integer|min:1|max:30',
+            'agent_config' => 'nullable|array',
         ]);
 
         try {
@@ -64,30 +73,77 @@ class AIStudioController extends Controller
                 ], 403);
             }
             
-            // Get brand settings
+            // Get brand settings and agent type for model configuration
             $brandSettings = Auth::user()->brandSetting;
+            $agentType = \App\Models\AgentType::where('code', 'marketing')->first();
+            $aiModel = $agentType ? ($agentType->model_config['strategy_model'] ?? $agentType->ai_model) : 'gpt-4o';
             
-            // Use saved brand settings as defaults, override with request data if provided
+            // Get agent configuration if passed
+            $agentConfig = $validated['agent_config'] ?? null;
+            
+            // Decode JSON strings if they exist in agent config
+            if ($agentConfig) {
+                if (isset($agentConfig['target_audience']) && is_string($agentConfig['target_audience'])) {
+                    $agentConfig['target_audience'] = json_decode($agentConfig['target_audience'], true);
+                }
+                if (isset($agentConfig['marketing_goals']) && is_string($agentConfig['marketing_goals'])) {
+                    $agentConfig['marketing_goals'] = json_decode($agentConfig['marketing_goals'], true);
+                }
+                if (isset($agentConfig['focus_keywords']) && is_string($agentConfig['focus_keywords'])) {
+                    $agentConfig['focus_keywords'] = json_decode($agentConfig['focus_keywords'], true);
+                }
+            }
+            
+            // Build context with priority: form data > agent_config > brand settings > defaults
+            $targetAudience = $validated['target_audience'] ?? null;
+            if (!$targetAudience && $agentConfig && isset($agentConfig['target_audience'])) {
+                $ta = $agentConfig['target_audience'];
+                $targetAudience = implode(', ', array_filter([
+                    $ta['age'] ?? '',
+                    $ta['location'] ?? '',
+                    $ta['interests'] ?? ''
+                ]));
+            }
+            if (!$targetAudience) {
+                $targetAudience = $brandSettings ? $brandSettings->target_audience : 'General audience';
+            }
+            
+            // Get Facebook page analytics if available
+            $followerCount = 0;
+            $engagementRate = 0;
+            $topPostTypes = 'Images, Videos';
+            $peakTimes = 'Based on industry standards';
+            
+            $facebookPage = $user->facebookPages()->where('is_active', true)->first();
+            if ($facebookPage) {
+                $followerCount = $facebookPage->follower_count ?? 0;
+                // You can add more analytics from the Facebook page if available
+            }
+            
             $context = [
-                'brand_name' => $validated['brand_name'] ?? ($brandSettings ? $brandSettings->brand_name : null) ?? 'Your Brand',
-                'industry' => $validated['industry'] ?? ($brandSettings ? $brandSettings->industry : null) ?? 'General',
-                'target_audience' => $validated['target_audience'] ?? ($brandSettings ? $brandSettings->target_audience : null) ?? 'General audience',
-                'business_goals' => $validated['business_goals'] ?? ($brandSettings ? $brandSettings->business_goals : null) ?? 'Increase engagement',
-                'brand_tone' => $validated['brand_tone'] ?? ($brandSettings ? $brandSettings->brand_tone : null) ?? 'professional',
-                'voice_characteristics' => $brandSettings ? $brandSettings->voice_characteristics : '',
-                'key_messages' => $brandSettings ? $brandSettings->key_messages : '',
+                'brand_name' => $validated['brand_name'] ?? ($agentConfig['business_name'] ?? ($brandSettings ? $brandSettings->brand_name : null)) ?? 'Your Brand',
+                'industry' => $validated['industry'] ?? ($agentConfig['industry'] ?? ($brandSettings ? $brandSettings->industry : null)) ?? 'General',
+                'target_audience' => $targetAudience,
+                'business_goals' => $validated['business_goals'] ?? ($agentConfig && isset($agentConfig['marketing_goals']) ? implode(', ', $agentConfig['marketing_goals']) : ($brandSettings ? $brandSettings->business_goals : null)) ?? 'Increase engagement',
+                'brand_tone' => $validated['brand_tone'] ?? ($agentConfig['brand_tone'] ?? ($brandSettings ? $brandSettings->brand_tone : null)) ?? 'professional',
+                'voice_characteristics' => $agentConfig['brand_personality'] ?? ($brandSettings ? $brandSettings->voice_characteristics : ''),
+                'key_messages' => $agentConfig['unique_value_proposition'] ?? ($brandSettings ? $brandSettings->key_messages : ''),
+                'pain_points' => $agentConfig['pain_points'] ?? '',
+                'products_services' => $agentConfig['products_services'] ?? '',
                 'visual_style' => $brandSettings ? $brandSettings->visual_style : '',
                 'preferred_language' => $brandSettings ? $brandSettings->preferred_language : 'en',
                 'monthly_budget' => $brandSettings ? $brandSettings->monthly_budget : null,
-                'follower_count' => $request->follower_count ?? 1000,
-                'engagement_rate' => $request->engagement_rate ?? '4.5',
-                'top_post_types' => 'image, video, carousel',
-                'peak_times' => '9 AM, 1 PM, 7 PM',
-                'forbidden_words' => $request->forbidden_words ?? ($brandSettings ? $brandSettings->forbidden_words : null) ?? '',
-                'task_description' => "Create a comprehensive {$validated['days']}-day content strategy",
+                'forbidden_words' => $request->forbidden_words ?? ($agentConfig['topics_to_avoid'] ?? ($brandSettings ? $brandSettings->forbidden_words : null)) ?? '',
+                'focus_keywords' => $agentConfig && isset($agentConfig['focus_keywords']) ? implode(', ', $agentConfig['focus_keywords']) : '',
+                'task_description' => "Create a comprehensive {$validated['days']}-day content strategy. Analyze the target audience demographics, industry trends, and typical social media behavior patterns to determine: 1) The optimal posting times for maximum engagement, 2) The best content types (image, video, carousel, text, etc.) for this specific audience and industry, 3) The ideal posting frequency. Base your recommendations on market research and audience behavior analysis.",
+                // Analytics fields required by StrategistAgentService
+                'follower_count' => $followerCount,
+                'engagement_rate' => $engagementRate,
+                'top_post_types' => $topPostTypes,
+                'peak_times' => $peakTimes,
             ];
 
-            $strategy = $this->strategist->createStrategy($context);
+            $strategy = $this->strategist->createStrategy($context, $aiModel);
             
             // Track usage (1 post counted for strategy generation)
             $this->usageService->trackPost(Auth::id());
@@ -110,9 +166,14 @@ class AIStudioController extends Controller
         } catch (\Exception $e) {
             \Log::error('Strategy generation failed: ' . $e->getMessage());
             
+            // Show detailed error in development mode
+            $errorMessage = config('app.debug') 
+                ? $e->getMessage() 
+                : 'Failed to generate strategy. Please check your OpenAI API key.';
+            
             return response()->json([
                 'success' => false,
-                'error' => 'Failed to generate strategy. Please check your OpenAI API key.',
+                'error' => $errorMessage,
             ], 500);
         }
     }
@@ -122,7 +183,16 @@ class AIStudioController extends Controller
      */
     public function contentForm()
     {
-        return view('ai-studio.content');
+        $user = Auth::user();
+        $brandSettings = $user->brandSetting;
+        
+        // Get marketing agent configuration if exists
+        $agentConfig = AgentConfiguration::where('user_id', $user->id)
+            ->where('agent_code', 'marketing')
+            ->where('is_complete', true)
+            ->first();
+            
+        return view('ai-studio.content', compact('agentConfig', 'brandSettings'));
     }
 
     /**
@@ -136,24 +206,53 @@ class AIStudioController extends Controller
             'tone' => 'required|in:professional,casual,friendly,authoritative',
             'target_audience' => 'required|string|max:500',
             'include_image' => 'boolean',
+            'agent_config' => 'nullable|array',
         ]);
 
         try {
-            // Generate caption
+            // Get agent configuration if passed
+            $agentConfig = $validated['agent_config'] ?? null;
+            
+            // Decode JSON strings if they exist in agent config
+            if ($agentConfig) {
+                if (isset($agentConfig['target_audience']) && is_string($agentConfig['target_audience'])) {
+                    $agentConfig['target_audience'] = json_decode($agentConfig['target_audience'], true);
+                }
+                if (isset($agentConfig['focus_keywords']) && is_string($agentConfig['focus_keywords'])) {
+                    $agentConfig['focus_keywords'] = json_decode($agentConfig['focus_keywords'], true);
+                }
+            }
+            
+            // Get brand settings for language and image preferences
+            $brandSettings = Auth::user()->brandSetting;
+            $preferredLanguage = $brandSettings ? $brandSettings->preferred_language : 'en';
+            $preferredLanguage = $preferredLanguage ?? 'en';
+            $languageName = $preferredLanguage === 'ar' ? 'Arabic' : ($preferredLanguage === 'en' ? 'English' : 'the specified language');
+            
+            // Get agent type for model configuration
+            $agentType = \App\Models\AgentType::where('code', 'marketing')->first();
+            $copywritingModel = $agentType ? ($agentType->model_config['copywriting_model'] ?? $agentType->ai_model) : 'gpt-4o-mini';
+            $creativeModel = $agentType ? ($agentType->model_config['creative_model'] ?? $agentType->ai_model) : 'gpt-4o-mini';
+            
+            // Generate caption with agent config context
             $captionContext = [
                 'brand_name' => $validated['brand_name'],
                 'brand_tone' => $validated['tone'],
-                'voice_characteristics' => "{$validated['tone']}, engaging, authentic",
+                'voice_characteristics' => $agentConfig['brand_personality'] ?? "{$validated['tone']}, engaging, authentic",
                 'target_audience' => $validated['target_audience'],
-                'key_messages' => $validated['topic'],
-                'forbidden_words' => $request->forbidden_words ?? '',
+                'key_messages' => $agentConfig['unique_value_proposition'] ?? $validated['topic'],
+                'pain_points' => $agentConfig['pain_points'] ?? '',
+                'products_services' => $agentConfig['products_services'] ?? '',
+                'forbidden_words' => $agentConfig['topics_to_avoid'] ?? $request->forbidden_words ?? '',
+                'focus_keywords' => $agentConfig && isset($agentConfig['focus_keywords']) ? implode(', ', $agentConfig['focus_keywords']) : '',
+                'preferred_language' => $preferredLanguage,
                 'max_length' => 2200,
                 'required_elements' => 'hashtags, CTA',
                 'cta_required' => true,
-                'task_description' => "Write an engaging Facebook post about: {$validated['topic']}",
+                'task_description' => "Write an engaging Facebook post about: {$validated['topic']}. IMPORTANT: Write the entire post in {$languageName} language. All text, hashtags, and call-to-action must be in {$languageName}.",
             ];
 
-            $captionResult = $this->copywriter->generateCaption($captionContext);
+            $captionResult = $this->copywriter->generateCaption($captionContext, $copywritingModel);
 
             $result = [
                 'caption' => $captionResult['caption'] ?? '',
@@ -167,19 +266,23 @@ class AIStudioController extends Controller
             if ($validated['include_image'] ?? false) {
                 $imageContext = [
                     'brand_name' => $validated['brand_name'],
-                    'primary_colors' => '#1877F2, #42B72A, #FFFFFF',
-                    'visual_style' => 'modern, clean, professional',
-                    'logo_usage' => 'optional',
-                    'image_mood' => $validated['tone'],
+                    'primary_colors' => $brandSettings && $brandSettings->primary_colors ? $brandSettings->primary_colors : '#1877F2, #42B72A, #FFFFFF',
+                    'visual_style' => $brandSettings && $brandSettings->image_style ? $brandSettings->image_style : ($brandSettings && $brandSettings->visual_style ? $brandSettings->visual_style : 'modern, clean, professional'),
+                    'logo_usage' => $brandSettings && $brandSettings->logo_in_images ? 'include' : 'optional',
+                    'image_mood' => $brandSettings && $brandSettings->image_mood ? $brandSettings->image_mood : $validated['tone'],
+                    'image_composition' => $brandSettings && $brandSettings->image_composition ? $brandSettings->image_composition : 'dynamic and eye-catching',
+                    'preferred_elements' => $brandSettings && $brandSettings->preferred_elements ? $brandSettings->preferred_elements : '',
+                    'avoid_elements' => $brandSettings && $brandSettings->avoid_elements ? $brandSettings->avoid_elements : '',
+                    'text_in_image' => $brandSettings && $brandSettings->text_in_images ? $brandSettings->text_in_images : 'minimal',
+                    'aspect_ratio' => $brandSettings && $brandSettings->image_aspect_ratio ? $brandSettings->image_aspect_ratio : '1:1',
                     'post_caption' => $result['caption'],
                     'post_objective' => 'engagement',
                     'target_audience' => $validated['target_audience'],
-                    'text_allowed' => 'minimal',
-                    'task_description' => "Create a compelling image for: {$validated['topic']}",
+                    'task_description' => "Create a compelling " . ($brandSettings && $brandSettings->image_aspect_ratio ? $brandSettings->image_aspect_ratio : '1:1') . " image for: {$validated['topic']}. Style: " . ($brandSettings && $brandSettings->image_style ? $brandSettings->image_style : 'professional') . ". Mood: " . ($brandSettings && $brandSettings->image_mood ? $brandSettings->image_mood : 'engaging') . ".",
                 ];
 
                 try {
-                    $result['image_url'] = $this->creative->generateImage($imageContext);
+                    $result['image_url'] = $this->creative->generateImage($imageContext, $creativeModel);
                 } catch (\Exception $e) {
                     \Log::warning('Image generation failed: ' . $e->getMessage());
                     $result['image_error'] = 'Image generation failed, but caption was created successfully.';

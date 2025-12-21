@@ -4,21 +4,35 @@
 @section('page-title', 'AI Content Creator')
 
 @section('content')
-<div class="max-w-6xl mx-auto">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         <!-- Input Form -->
-        <div class="bg-white rounded-lg shadow-lg p-8">
+        <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
             <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">Create Your Content</h2>
-                <p class="text-gray-600">AI will write captions and generate images for you</p>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Create Your Content</h2>
+                <p class="text-sm sm:text-base text-gray-600">AI will write captions and generate images for you</p>
             </div>
 
-            <form id="content-form" class="space-y-6">
+            <form id="content-form" class="space-y-4 sm:space-y-6">
                 @csrf
+                
+                <!-- Hidden fields for agent configuration -->
+                @if($agentConfig)
+                    <input type="hidden" name="agent_config[business_name]" value="{{ $agentConfig->business_name }}">
+                    <input type="hidden" name="agent_config[industry]" value="{{ $agentConfig->industry }}">
+                    <input type="hidden" name="agent_config[products_services]" value="{{ $agentConfig->products_services }}">
+                    <input type="hidden" name="agent_config[unique_value_proposition]" value="{{ $agentConfig->unique_value_proposition }}">
+                    <input type="hidden" name="agent_config[brand_tone]" value="{{ $agentConfig->brand_tone }}">
+                    <input type="hidden" name="agent_config[target_audience]" value="{{ json_encode($agentConfig->target_audience) }}">
+                    <input type="hidden" name="agent_config[pain_points]" value="{{ $agentConfig->pain_points }}">
+                    <input type="hidden" name="agent_config[focus_keywords]" value="{{ json_encode($agentConfig->focus_keywords) }}">
+                    <input type="hidden" name="agent_config[topics_to_avoid]" value="{{ $agentConfig->topics_to_avoid }}">
+                @endif
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Brand Name *</label>
                     <input type="text" name="brand_name" required 
+                           value="{{ $agentConfig->business_name ?? '' }}"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"
                            placeholder="Your Brand">
                 </div>
@@ -32,7 +46,20 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Target Audience *</label>
+                    @php
+                        $targetAudienceValue = '';
+                        if ($agentConfig && $agentConfig->target_audience) {
+                            $ta = $agentConfig->target_audience;
+                            $parts = array_filter([
+                                $ta['age'] ?? '',
+                                $ta['location'] ?? '',
+                                $ta['interests'] ?? ''
+                            ]);
+                            $targetAudienceValue = implode(', ', $parts);
+                        }
+                    @endphp
                     <input type="text" name="target_audience" required 
+                           value="{{ $targetAudienceValue }}"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"
                            placeholder="Who is this for?">
                 </div>
@@ -41,10 +68,10 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tone *</label>
                     <select name="tone" required 
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                        <option value="professional">Professional</option>
-                        <option value="casual">Casual</option>
-                        <option value="friendly" selected>Friendly</option>
-                        <option value="authoritative">Authoritative</option>
+                        <option value="professional" {{ ($agentConfig->brand_tone ?? '') == 'professional' ? 'selected' : '' }}>Professional</option>
+                        <option value="casual" {{ ($agentConfig->brand_tone ?? '') == 'casual' ? 'selected' : '' }}>Casual</option>
+                        <option value="friendly" {{ ($agentConfig->brand_tone ?? 'friendly') == 'friendly' ? 'selected' : '' }}>Friendly</option>
+                        <option value="authoritative" {{ ($agentConfig->brand_tone ?? '') == 'authoritative' ? 'selected' : '' }}>Authoritative</option>
                     </select>
                 </div>
 
@@ -55,6 +82,30 @@
                         Generate AI Image (DALL-E 3)
                     </label>
                 </div>
+                
+                @if(isset($brandSettings) && ($brandSettings->image_style || $brandSettings->image_mood))
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p class="text-xs font-semibold text-blue-900 mb-1">✓ Your Image Preferences Active</p>
+                        <p class="text-xs text-blue-700">
+                            @if($brandSettings->image_style)
+                                Style: <span class="font-medium">{{ ucfirst($brandSettings->image_style) }}</span>
+                            @endif
+                            @if($brandSettings->image_mood)
+                                • Mood: <span class="font-medium">{{ ucfirst($brandSettings->image_mood) }}</span>
+                            @endif
+                            @if($brandSettings->image_aspect_ratio)
+                                • Ratio: <span class="font-medium">{{ $brandSettings->image_aspect_ratio }}</span>
+                            @endif
+                        </p>
+                        <a href="{{ route('dashboard.settings') }}" class="text-xs text-blue-600 hover:underline">Edit preferences</a>
+                    </div>
+                @else
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <p class="text-xs text-yellow-800">
+                            💡 <a href="{{ route('dashboard.settings') }}" class="font-medium text-yellow-900 hover:underline">Set your image preferences</a> to get consistent brand-matched images every time!
+                        </p>
+                    </div>
+                @endif
 
                 <button type="submit" id="generate-content-btn" 
                         class="w-full px-6 py-3 bg-gradient-to-r from-pink-600 to-orange-600 text-white rounded-lg hover:from-pink-700 hover:to-orange-700 flex items-center justify-center">
@@ -67,8 +118,8 @@
         </div>
 
         <!-- Preview Area -->
-        <div class="bg-white rounded-lg shadow-lg p-8">
-            <h3 class="text-xl font-bold text-gray-900 mb-6">Preview</h3>
+        <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
+            <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-6">Preview</h3>
             
             <div id="preview-area" class="text-center text-gray-400 py-12">
                 <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">

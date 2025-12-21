@@ -228,7 +228,13 @@ class DashboardController extends Controller
         $user = Auth::user();
         $brandSettings = $user->brandSettings;
         
-        return view('dashboard.settings', compact('user', 'brandSettings'));
+        // Get marketing agent configuration if exists
+        $agentConfig = \App\Models\AgentConfiguration::where('user_id', $user->id)
+            ->where('agent_code', 'marketing')
+            ->where('is_complete', true)
+            ->first();
+        
+        return view('dashboard.settings', compact('user', 'brandSettings', 'agentConfig'));
     }
 
     /**

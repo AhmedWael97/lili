@@ -87,8 +87,8 @@
 
                                 <!-- Quick Actions -->
                                 <div class="space-y-2">
-                                    @if($agentType->code === 'marketing')
-                                        <a href="{{ route('ai-studio.index') }}" class="block w-full bg-blue-500 hover:bg-blue-700 text-white text-center font-bold py-2 px-4 rounded text-sm">
+                                    @if(in_array($agentType->code, ['marketing', 'qa']))
+                                        <a href="{{ route('agents.use', $agentType->code) }}" class="block w-full bg-blue-500 hover:bg-blue-700 text-white text-center font-bold py-2 px-4 rounded text-sm">
                                             Use Agent
                                         </a>
                                     @else
@@ -111,7 +111,17 @@
                     <div class="p-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
                         
-                        @if($recentInteractions->flatten()->isEmpty())
+                        @php
+                            $hasInteractions = false;
+                            foreach($recentInteractions as $interactions) {
+                                if($interactions->count() > 0) {
+                                    $hasInteractions = true;
+                                    break;
+                                }
+                            }
+                        @endphp
+                        
+                        @if(!$hasInteractions)
                             <p class="text-center text-gray-500 py-8">No recent interactions yet. Start using your agents!</p>
                         @else
                             <div class="space-y-4">

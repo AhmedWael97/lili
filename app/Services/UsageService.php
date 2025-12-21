@@ -132,25 +132,25 @@ class UsageService
             'package' => $subscription->package_name,
             'month_year' => $usage->month_year,
             'posts' => [
-                'used' => $usage->posts_count,
+                'used' => $usage->posts_count ?? 0,
                 'limit' => $limits->posts_per_month_limit,
                 'unlimited' => $limits->posts_per_month_limit === -1,
                 'percentage' => $this->calculatePercentage($usage->posts_count, $limits->posts_per_month_limit),
             ],
             'comment_replies' => [
-                'used' => $usage->comment_replies_count,
+                'used' => $usage->comment_replies_count ?? 0,
                 'limit' => $limits->comment_replies_limit,
                 'unlimited' => $limits->comment_replies_limit === -1,
                 'percentage' => $this->calculatePercentage($usage->comment_replies_count, $limits->comment_replies_limit),
             ],
             'messages' => [
-                'used' => $usage->messages_count,
+                'used' => $usage->messages_count ?? 0,
                 'limit' => $limits->messages_limit,
                 'unlimited' => $limits->messages_limit === -1,
                 'percentage' => $this->calculatePercentage($usage->messages_count, $limits->messages_limit),
             ],
             'ad_spend' => [
-                'used' => $usage->ad_spend_total,
+                'used' => $usage->ad_spend_total ?? 0,
                 'limit' => $limits->ad_spend_limit,
                 'unlimited' => $limits->ad_spend_limit == 0 && $limits->ad_campaigns_enabled,
                 'currency' => 'USD',
@@ -202,19 +202,24 @@ class UsageService
      */
     protected function getUsageValue($usage, string $type): int
     {
-        return match ($type) {
+        $value = match ($type) {
             'post' => $usage->posts_count,
             'comment_reply' => $usage->comment_replies_count,
             'message' => $usage->messages_count,
             default => 0,
         };
+        
+        return $value ?? 0;
     }
 
     /**
      * Helper: Calculate percentage
      */
-    protected function calculatePercentage(int $used, int $limit): float
+    protected function calculatePercentage(?int $used, ?int $limit): float
     {
+        $used = $used ?? 0;
+        $limit = $limit ?? 0;
+        
         if ($limit === -1 || $limit === 0) {
             return 0;
         }

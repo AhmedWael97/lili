@@ -47,6 +47,14 @@ class BrandSettingsController extends Controller
             'website_url' => 'nullable|url|max:255',
             'preferred_language' => 'required|in:en,ar,es,fr,de,it,pt,zh,ja,ko',
             'monthly_budget' => 'nullable|numeric|min:0|max:999999.99',
+            // Image generation preferences
+            'image_style' => 'nullable|in:photographic,illustration,minimalist,abstract,3d-render,flat-design,vintage',
+            'image_mood' => 'nullable|in:professional,energetic,calm,playful,elegant,bold,warm',
+            'image_composition' => 'nullable|string|max:500',
+            'text_in_images' => 'nullable|in:none,minimal,prominent',
+            'preferred_elements' => 'nullable|string|max:500',
+            'avoid_elements' => 'nullable|string|max:500',
+            'image_aspect_ratio' => 'nullable|in:1:1,16:9,4:5,9:16',
         ]);
 
         // Handle logo upload

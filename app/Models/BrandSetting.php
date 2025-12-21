@@ -26,6 +26,13 @@ class BrandSetting extends Model
         'website_url',
         'preferred_language',
         'monthly_budget',
+        'image_style',
+        'image_mood',
+        'image_composition',
+        'text_in_images',
+        'preferred_elements',
+        'avoid_elements',
+        'image_aspect_ratio',
     ];
 
     protected $casts = [

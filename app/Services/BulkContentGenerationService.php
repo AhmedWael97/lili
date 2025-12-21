@@ -23,10 +23,15 @@ class BulkContentGenerationService
     {
         $results = [];
         $brandSettings = BrandSetting::where('user_id', $userId)->first();
+        
+        // Get agent type for model configuration
+        $agentType = \App\Models\AgentType::where('code', 'marketing')->first();
+        $copywritingModel = $agentType ? ($agentType->model_config['copywriting_model'] ?? $agentType->ai_model) : 'gpt-4o-mini';
+        $creativeModel = $agentType ? ($agentType->model_config['creative_model'] ?? $agentType->ai_model) : 'gpt-4o-mini';
 
         foreach ($strategyCalendar as $index => $day) {
             try {
-                $result = $this->generateDayContent($userId, $day, $brandContext, $brandSettings);
+                $result = $this->generateDayContent($userId, $day, $brandContext, $brandSettings, $copywritingModel, $creativeModel);
                 $results[] = [
                     'day' => $day['day'] ?? "Day " . ($index + 1),
                     'status' => 'success',
@@ -54,7 +59,7 @@ class BulkContentGenerationService
     /**
      * Generate content for a single day
      */
-    protected function generateDayContent(int $userId, array $dayData, array $brandContext, ?BrandSetting $brandSettings): array
+    protected function generateDayContent(int $userId, array $dayData, array $brandContext, ?BrandSetting $brandSettings, string $copywritingModel = 'gpt-4o-mini', string $creativeModel = 'gpt-4o-mini'): array
     {
         // Build context for copywriter
         $context = [
@@ -71,7 +76,7 @@ class BulkContentGenerationService
         ];
 
         // Generate caption
-        $captionResult = $this->copywriter->writeCopyFromStrategy($context);
+        $captionResult = $this->copywriter->writeCopyFromStrategy($context, $copywritingModel);
 
         // Determine if we need an image based on content type
         $needsImage = in_array(strtolower($dayData['content_type'] ?? 'image'), ['image', 'video', 'carousel']);
@@ -92,7 +97,7 @@ class BulkContentGenerationService
             ];
 
             try {
-                $imageUrl = $this->creative->generateImage($imageContext);
+                $imageUrl = $this->creative->generateImage($imageContext, $creativeModel);
 
                 // Apply logo if needed
                 if ($brandSettings && $brandSettings->logo_in_images && $brandSettings->logo_path) {
