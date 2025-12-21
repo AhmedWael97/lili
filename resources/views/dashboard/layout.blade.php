@@ -9,6 +9,61 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-50">
+    <!-- Facebook SDK -->
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId      : '{{ config('services.facebook.client_id') }}',
+          cookie     : true,
+          xfbml      : true,
+          version    : 'v18.0'
+        });
+          
+        FB.AppEvents.logPageView();
+        
+        // Check login status on page load
+        FB.getLoginStatus(function(response) {
+          statusChangeCallback(response);
+        });
+      };
+
+      function statusChangeCallback(response) {
+        console.log('Facebook Login Status:', response);
+        
+        if (response.status === 'connected') {
+          // User is logged into Facebook and your app
+          console.log('Facebook Access Token:', response.authResponse.accessToken);
+          console.log('User ID:', response.authResponse.userID);
+          
+          // Store token for later use if needed
+          window.fbAccessToken = response.authResponse.accessToken;
+          window.fbUserID = response.authResponse.userID;
+          
+        } else if (response.status === 'not_authorized') {
+          // User is logged into Facebook but not your app
+          console.log('User not authorized in app');
+          
+        } else {
+          // User is not logged into Facebook
+          console.log('User not logged into Facebook');
+        }
+      }
+
+      // Callback for login button
+      function checkLoginState() {
+        FB.getLoginStatus(function(response) {
+          statusChangeCallback(response);
+        });
+      }
+
+      (function(d, s, id){
+         var js, fjs = d.getElementsByTagName(s)[0];
+         if (d.getElementById(id)) {return;}
+         js = d.createElement(s); js.id = id;
+         js.src = "https://connect.facebook.net/en_US/sdk.js";
+         fjs.parentNode.insertBefore(js, fjs);
+       }(document, 'script', 'facebook-jssdk'));
+    </script>
     <div class="min-h-screen flex">
         <!-- Sidebar -->
         <aside class="w-64 bg-white border-r border-gray-200">
