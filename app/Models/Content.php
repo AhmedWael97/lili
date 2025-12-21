@@ -9,6 +9,7 @@ class Content extends Model
 {
     protected $fillable = [
         'user_id',
+        'strategy_id',
         'facebook_page_id',
         'content_type',
         'caption',
@@ -39,6 +40,11 @@ class Content extends Model
     public function facebookPage(): BelongsTo
     {
         return $this->belongsTo(FacebookPage::class);
+    }
+
+    public function strategy(): BelongsTo
+    {
+        return $this->belongsTo(Strategy::class);
     }
 
     /**

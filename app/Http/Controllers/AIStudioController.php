@@ -26,7 +26,37 @@ class AIStudioController extends Controller
      */
     public function index()
     {
-        return view('ai-studio.index');
+        $strategies = \App\Models\Strategy::where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $usageSummary = $this->usageService->getUsageSummary(Auth::id());
+        
+        return view('marketing-studio.index', compact('strategies', 'usageSummary'));
+    }
+
+    /**
+     * Delete a strategy
+     */
+    public function deleteStrategy($id)
+    {
+        try {
+            $strategy = \App\Models\Strategy::where('user_id', Auth::id())
+                ->where('id', $id)
+                ->firstOrFail();
+            
+            $strategy->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Strategy deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to delete strategy',
+            ], 500);
+        }
     }
 
     /**
@@ -44,7 +74,7 @@ class AIStudioController extends Controller
             ->where('is_complete', true)
             ->first();
         
-        return view('ai-studio.strategy', compact('brandSettings', 'usageSummary', 'agentConfig'));
+        return view('marketing-studio.strategy', compact('brandSettings', 'usageSummary', 'agentConfig'));
     }
 
     /**
@@ -114,7 +144,8 @@ class AIStudioController extends Controller
             $topPostTypes = 'Images, Videos';
             $peakTimes = 'Based on industry standards';
             
-            $facebookPage = $user->facebookPages()->where('is_active', true)->first();
+            $user = Auth::user();
+            $facebookPage = $user->facebookPages()->where('status', 'active')->first();
             if ($facebookPage) {
                 $followerCount = $facebookPage->follower_count ?? 0;
                 // You can add more analytics from the Facebook page if available
@@ -147,10 +178,23 @@ class AIStudioController extends Controller
             
             // Track usage (1 post counted for strategy generation)
             $this->usageService->trackPost(Auth::id());
+            
+            // Save strategy to database
+            $strategyRecord = \App\Models\Strategy::create([
+                'user_id' => Auth::id(),
+                'title' => "{$context['brand_name']} - {$validated['days']}-Day Strategy",
+                'days' => $validated['days'],
+                'content_calendar' => $strategy['content_calendar'] ?? [],
+                'strategic_recommendations' => $strategy['strategic_recommendations'] ?? [],
+                'brand_context' => $context,
+                'status' => 'draft',
+                'content_total' => count($strategy['content_calendar'] ?? []),
+            ]);
 
             return response()->json([
                 'success' => true,
                 'strategy' => $strategy,
+                'strategy_id' => $strategyRecord->id,
                 'brand_context' => [
                     'brand_name' => $context['brand_name'],
                     'brand_tone' => $context['brand_tone'],
@@ -192,7 +236,7 @@ class AIStudioController extends Controller
             ->where('is_complete', true)
             ->first();
             
-        return view('ai-studio.content', compact('agentConfig', 'brandSettings'));
+        return view('marketing-studio.content', compact('agentConfig', 'brandSettings'));
     }
 
     /**
@@ -349,17 +393,30 @@ class AIStudioController extends Controller
         $validated = $request->validate([
             'strategy_calendar' => 'required|array',
             'brand_context' => 'required|array',
+            'strategy_id' => 'nullable|exists:strategies,id',
         ]);
 
         try {
             $results = $this->bulkGenerator->generateFromStrategy(
                 Auth::id(),
                 $validated['strategy_calendar'],
-                $validated['brand_context']
+                $validated['brand_context'],
+                $validated['strategy_id'] ?? null
             );
 
             $successCount = collect($results)->where('status', 'success')->count();
             $failedCount = collect($results)->where('status', 'failed')->count();
+            
+            // Update strategy status if provided
+            if (isset($validated['strategy_id'])) {
+                $strategy = \App\Models\Strategy::find($validated['strategy_id']);
+                if ($strategy) {
+                    $strategy->update([
+                        'content_generated' => $successCount,
+                        'status' => $successCount > 0 ? 'completed' : 'draft',
+                    ]);
+                }
+            }
 
             return response()->json([
                 'success' => true,
@@ -378,6 +435,63 @@ class AIStudioController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => 'Failed to generate content: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+    
+    /**
+     * Delete content
+     */
+    public function deleteContent($id)
+    {
+        try {
+            $content = \App\Models\Content::where('user_id', Auth::id())
+                ->where('id', $id)
+                ->firstOrFail();
+            
+            $content->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Content deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to delete content',
+            ], 500);
+        }
+    }
+    
+    /**
+     * Update content
+     */
+    public function updateContent(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'caption' => 'required|string',
+            'image_url' => 'nullable|string',
+        ]);
+
+        try {
+            $content = \App\Models\Content::where('user_id', Auth::id())
+                ->where('id', $id)
+                ->firstOrFail();
+            
+            $content->update([
+                'caption' => $validated['caption'],
+                'image_url' => $validated['image_url'] ?? $content->image_url,
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'content' => $content,
+                'message' => 'Content updated successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to update content',
             ], 500);
         }
     }

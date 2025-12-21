@@ -98,7 +98,7 @@ class AgentController extends Controller
             }
 
             // Onboarding complete, go to AI Studio
-            return redirect()->route('ai-studio.index');
+            return redirect()->route('marketing.studio.index');
         }
 
         // QA Agent

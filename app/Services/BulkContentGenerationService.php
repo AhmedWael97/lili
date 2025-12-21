@@ -19,7 +19,7 @@ class BulkContentGenerationService
     /**
      * Generate content for entire strategy calendar
      */
-    public function generateFromStrategy(int $userId, array $strategyCalendar, array $brandContext): array
+    public function generateFromStrategy(int $userId, array $strategyCalendar, array $brandContext, ?int $strategyId = null): array
     {
         $results = [];
         $brandSettings = BrandSetting::where('user_id', $userId)->first();
@@ -31,7 +31,7 @@ class BulkContentGenerationService
 
         foreach ($strategyCalendar as $index => $day) {
             try {
-                $result = $this->generateDayContent($userId, $day, $brandContext, $brandSettings, $copywritingModel, $creativeModel);
+                $result = $this->generateDayContent($userId, $day, $brandContext, $brandSettings, $copywritingModel, $creativeModel, $strategyId);
                 $results[] = [
                     'day' => $day['day'] ?? "Day " . ($index + 1),
                     'status' => 'success',
@@ -59,7 +59,7 @@ class BulkContentGenerationService
     /**
      * Generate content for a single day
      */
-    protected function generateDayContent(int $userId, array $dayData, array $brandContext, ?BrandSetting $brandSettings, string $copywritingModel = 'gpt-4o-mini', string $creativeModel = 'gpt-4o-mini'): array
+    protected function generateDayContent(int $userId, array $dayData, array $brandContext, ?BrandSetting $brandSettings, string $copywritingModel = 'gpt-4o-mini', string $creativeModel = 'gpt-4o-mini', ?int $strategyId = null): array
     {
         // Build context for copywriter
         $context = [
@@ -114,6 +114,7 @@ class BulkContentGenerationService
         // Save as draft
         $content = Content::create([
             'user_id' => $userId,
+            'strategy_id' => $strategyId,
             'facebook_page_id' => null,
             'content_type' => $dayData['content_type'] ?? 'post',
             'caption' => $captionResult['caption'] ?? '',

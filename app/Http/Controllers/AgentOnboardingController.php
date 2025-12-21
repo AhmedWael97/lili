@@ -120,7 +120,7 @@ class AgentOnboardingController extends Controller
         // Redirect to the appropriate agent feature page
         if ($agentCode === 'marketing') {
             return redirect()
-                ->route('ai-studio.index')
+                ->route('marketing.studio.index')
                 ->with('success', 'Setup complete! Your marketing agent is ready to use.');
         }
 

@@ -128,11 +128,11 @@
                     @endphp
                     
                     @if($hasActiveAgents)
-                        <a href="{{ route('ai-studio.index') }}" class="bg-lili-600 hover:bg-lili-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="{{ route('marketing.studio.index') }}" class="bg-lili-600 hover:bg-lili-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
                             Use AI Agents
                         </a>
                     @else
-                        <a href="{{ route('agents.index') }}" class="bg-lili-600 hover:bg-lili-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="{{ route('marketing.studio.index') }}" class="bg-lili-600 hover:bg-lili-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
                             Activate Agents
                         </a>
                     @endif

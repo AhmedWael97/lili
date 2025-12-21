@@ -9,7 +9,18 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AIStudioController;
 use App\Http\Controllers\AgentController;
 use App\Models\Package;
+use App\Services\MarketAnalysis\CompetitorAnalysisService;
 use Illuminate\Support\Facades\Route;
+
+// TEST ROUTE - Remove after debugging
+Route::get('/test-competitor', function () {
+    $service = new CompetitorAnalysisService();
+    $result = $service->analyzeCompetitor(1, 'noon', 'Noon Shopping', '1.1M');
+    return response()->json([
+        'result' => $result,
+        'message' => 'Check storage/logs/laravel.log for detailed logs'
+    ]);
+});
 
 // Public routes
 Route::get('/', function () {
@@ -61,15 +72,29 @@ Route::middleware(['auth', 'subscription.active'])->prefix('content')->name('con
     Route::post('/{id}/publish', [ContentGenerationController::class, 'publish'])->name('publish');
 });
 
-// AI Studio routes (no Facebook required)
-Route::middleware(['auth', 'subscription.active'])->prefix('ai-studio')->name('ai-studio.')->group(function () {
+// Marketing Studio routes (formerly AI Studio - no Facebook required)
+Route::middleware(['auth', 'subscription.active'])->prefix('marketing/studio')->name('marketing.studio.')->group(function () {
     Route::get('/', [AIStudioController::class, 'index'])->name('index');
     Route::get('/strategy', [AIStudioController::class, 'strategyForm'])->name('strategy');
     Route::post('/strategy/generate', [AIStudioController::class, 'generateStrategy'])->name('generate-strategy');
+    Route::delete('/strategy/{id}', [AIStudioController::class, 'deleteStrategy'])->name('delete-strategy');
     Route::post('/strategy/generate-all', [AIStudioController::class, 'generateAllContent'])->name('generate-all-content');
     Route::get('/content', [AIStudioController::class, 'contentForm'])->name('content');
     Route::post('/content/generate', [AIStudioController::class, 'generateContent'])->name('generate-content');
     Route::post('/content/save-draft', [AIStudioController::class, 'saveDraft'])->name('save-draft');
+    Route::delete('/content/{id}', [AIStudioController::class, 'deleteContent'])->name('delete-content');
+    Route::put('/content/{id}', [AIStudioController::class, 'updateContent'])->name('update-content');
+});
+
+// Market Analysis routes
+Route::middleware(['auth', 'subscription.active'])->prefix('marketing/studio/market-analysis')->name('market.analysis.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\MarketAnalysisController::class, 'index'])->name('index');
+    Route::post('/competitor/analyze', [\App\Http\Controllers\MarketAnalysisController::class, 'analyzeCompetitor'])->name('competitor.analyze');
+    Route::post('/competitor/compare', [\App\Http\Controllers\MarketAnalysisController::class, 'compareCompetitor'])->name('competitor.compare');
+    Route::delete('/competitor/{id}', [\App\Http\Controllers\MarketAnalysisController::class, 'deleteCompetitor'])->name('competitor.delete');
+    Route::post('/competitor/{id}/refresh', [\App\Http\Controllers\MarketAnalysisController::class, 'refreshCompetitor'])->name('competitor.refresh');
+    Route::post('/swot/generate', [\App\Http\Controllers\MarketAnalysisController::class, 'generateSWOT'])->name('swot.generate');
+    Route::get('/opportunities', [\App\Http\Controllers\MarketAnalysisController::class, 'getOpportunities'])->name('opportunities');
 });
 
 // Agent Management routes
