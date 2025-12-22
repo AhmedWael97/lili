@@ -138,7 +138,7 @@
             </div>
 
             <div class="flex justify-end space-x-4">
-                <a href="{{ route('marketing.studio.index') }}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                <a href="{{ route('marketing.os.index') }}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
                     Cancel
                 </a>
                 <button type="submit" id="generate-btn" 

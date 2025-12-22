@@ -47,6 +47,7 @@ return [
         'client_id' => env('FACEBOOK_APP_ID'),
         'client_secret' => env('FACEBOOK_APP_SECRET'),
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
+        'app_access_token' => env('FACEBOOK_APP_ACCESS_TOKEN'),
     ],
 
     'socialblade' => [
@@ -58,6 +59,20 @@ return [
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
         'organization' => env('OPENAI_ORGANIZATION'),
+        'model' => env('OPENAI_MODEL', 'gpt-4-turbo-preview'),
+    ],
+
+    // Marketing OS APIs (Phase 1)
+    'similarweb' => [
+        'api_key' => env('SIMILARWEB_API_KEY'),
+    ],
+
+    'semrush' => [
+        'api_key' => env('SEMRUSH_API_KEY'),
+    ],
+
+    'ahrefs' => [
+        'api_key' => env('AHREFS_API_KEY'),
     ],
 
 ];

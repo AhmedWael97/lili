@@ -37,11 +37,11 @@
                     Overview
                 </a>
 
-                <a href="{{ route('dashboard.content') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('dashboard.content') ? 'bg-lili-50 text-lili-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                <a href="{{ route('marketing.os.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('marketing.os.*') ? 'bg-lili-50 text-lili-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
-                    Content
+                    Marketing OS
                 </a>
 
                 <a href="{{ route('agents.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('agents.*') ? 'bg-lili-50 text-lili-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
@@ -128,12 +128,12 @@
                     @endphp
                     
                     @if($hasActiveAgents)
-                        <a href="{{ route('marketing.studio.index') }}" class="bg-lili-600 hover:bg-lili-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                            Use AI Agents
+                        <a href="{{ route('marketing.os.index') }}" class="bg-lili-600 hover:bg-lili-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                            Use Marketing OS
                         </a>
                     @else
-                        <a href="{{ route('marketing.studio.index') }}" class="bg-lili-600 hover:bg-lili-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                            Activate Agents
+                        <a href="{{ route('marketing.os.index') }}" class="bg-lili-600 hover:bg-lili-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                            Setup Marketing OS
                         </a>
                     @endif
                 </div>

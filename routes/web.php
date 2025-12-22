@@ -3,24 +3,28 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\FacebookOAuthController;
-use App\Http\Controllers\ContentGenerationController;
-use App\Http\Controllers\BrandSettingsController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\AIStudioController;
 use App\Http\Controllers\AgentController;
+use App\Http\Controllers\Marketing\MarketingOSController;
 use App\Models\Package;
-use App\Services\MarketAnalysis\CompetitorAnalysisService;
 use Illuminate\Support\Facades\Route;
 
-// TEST ROUTE - Remove after debugging
-Route::get('/test-competitor', function () {
-    $service = new CompetitorAnalysisService();
-    $result = $service->analyzeCompetitor(1, 'noon', 'Noon Shopping', '1.1M');
-    return response()->json([
-        'result' => $result,
-        'message' => 'Check storage/logs/laravel.log for detailed logs'
-    ]);
+
+
+
+Route::get('/new-migrate',function() {
+    \Artisan::call("migrate");
+    return "migrated";
 });
+
+Route::get('/clear-cache', function() {
+    \Artisan::call('cache:clear');
+    \Artisan::call('config:clear');
+    \Artisan::call('config:cache');
+    \Artisan::call('view:clear');
+    return "Cache Cleared!";
+});
+
 
 // Public routes
 Route::get('/', function () {
@@ -55,46 +59,26 @@ Route::middleware('auth')->prefix('auth/facebook')->name('facebook.')->group(fun
 // User dashboard routes
 Route::middleware(['auth', 'subscription.active'])->prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('index');
-    Route::get('/content', [DashboardController::class, 'content'])->name('content');
     Route::get('/agents', [DashboardController::class, 'agents'])->name('agents');
     Route::get('/platforms', [DashboardController::class, 'platforms'])->name('platforms');
     Route::get('/analytics', [DashboardController::class, 'analytics'])->name('analytics');
     Route::get('/settings', [DashboardController::class, 'settings'])->name('settings');
-    Route::post('/settings', [BrandSettingsController::class, 'update'])->name('settings.update');
     Route::get('/billing', [DashboardController::class, 'billing'])->name('billing');
 });
 
-// Content generation routes
-Route::middleware(['auth', 'subscription.active'])->prefix('content')->name('content.')->group(function () {
-    Route::get('/create', [ContentGenerationController::class, 'create'])->name('create');
-    Route::post('/generate', [ContentGenerationController::class, 'generate'])->name('generate');
-    Route::post('/{id}/schedule', [ContentGenerationController::class, 'schedule'])->name('schedule');
-    Route::post('/{id}/publish', [ContentGenerationController::class, 'publish'])->name('publish');
-});
-
-// Marketing Studio routes (formerly AI Studio - no Facebook required)
-Route::middleware(['auth', 'subscription.active'])->prefix('marketing/studio')->name('marketing.studio.')->group(function () {
-    Route::get('/', [AIStudioController::class, 'index'])->name('index');
-    Route::get('/strategy', [AIStudioController::class, 'strategyForm'])->name('strategy');
-    Route::post('/strategy/generate', [AIStudioController::class, 'generateStrategy'])->name('generate-strategy');
-    Route::delete('/strategy/{id}', [AIStudioController::class, 'deleteStrategy'])->name('delete-strategy');
-    Route::post('/strategy/generate-all', [AIStudioController::class, 'generateAllContent'])->name('generate-all-content');
-    Route::get('/content', [AIStudioController::class, 'contentForm'])->name('content');
-    Route::post('/content/generate', [AIStudioController::class, 'generateContent'])->name('generate-content');
-    Route::post('/content/save-draft', [AIStudioController::class, 'saveDraft'])->name('save-draft');
-    Route::delete('/content/{id}', [AIStudioController::class, 'deleteContent'])->name('delete-content');
-    Route::put('/content/{id}', [AIStudioController::class, 'updateContent'])->name('update-content');
-});
-
-// Market Analysis routes
-Route::middleware(['auth', 'subscription.active'])->prefix('marketing/studio/market-analysis')->name('market.analysis.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\MarketAnalysisController::class, 'index'])->name('index');
-    Route::post('/competitor/analyze', [\App\Http\Controllers\MarketAnalysisController::class, 'analyzeCompetitor'])->name('competitor.analyze');
-    Route::post('/competitor/compare', [\App\Http\Controllers\MarketAnalysisController::class, 'compareCompetitor'])->name('competitor.compare');
-    Route::delete('/competitor/{id}', [\App\Http\Controllers\MarketAnalysisController::class, 'deleteCompetitor'])->name('competitor.delete');
-    Route::post('/competitor/{id}/refresh', [\App\Http\Controllers\MarketAnalysisController::class, 'refreshCompetitor'])->name('competitor.refresh');
-    Route::post('/swot/generate', [\App\Http\Controllers\MarketAnalysisController::class, 'generateSWOT'])->name('swot.generate');
-    Route::get('/opportunities', [\App\Http\Controllers\MarketAnalysisController::class, 'getOpportunities'])->name('opportunities');
+// Marketing OS routes (Phase 1 - Strategy-Only)
+Route::middleware(['auth', 'subscription.active'])->prefix('marketing/os')->name('marketing.os.')->group(function () {
+    Route::get('/', [MarketingOSController::class, 'index'])->name('index');
+    Route::get('/setup-brand', [MarketingOSController::class, 'setupBrand'])->name('setup-brand');
+    Route::post('/store-brand', [MarketingOSController::class, 'storeBrand'])->name('store-brand');
+    Route::post('/generate-strategy', [MarketingOSController::class, 'generateStrategy'])->name('generate-strategy');
+    Route::get('/strategy/{id}', [MarketingOSController::class, 'viewStrategy'])->name('view-strategy');
+    Route::post('/add-competitor', [MarketingOSController::class, 'addCompetitor'])->name('add-competitor');
+    Route::delete('/competitor/{id}', [MarketingOSController::class, 'deleteCompetitor'])->name('delete-competitor');
+    Route::get('/competitor/{id}/keywords', [MarketingOSController::class, 'getCompetitorKeywords'])->name('competitor-keywords');
+    Route::get('/competitor/{id}/backlinks', [MarketingOSController::class, 'getCompetitorBacklinks'])->name('competitor-backlinks');
+    Route::get('/competitor/{id}/social', [MarketingOSController::class, 'getCompetitorSocial'])->name('competitor-social');
+    Route::get('/export-strategy/{id}', [MarketingOSController::class, 'exportStrategy'])->name('export-strategy');
 });
 
 // Agent Management routes
