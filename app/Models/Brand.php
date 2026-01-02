@@ -14,6 +14,7 @@ class Brand extends Model
         'website',
         'industry',
         'country',
+        'language',
         'currency',
         'description',
         'target_audience',

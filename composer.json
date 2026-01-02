@@ -15,7 +15,9 @@
         "openai-php/laravel": "*",
         "predis/predis": "^3.3",
         "socialiteproviders/facebook": "*",
-        "spatie/laravel-permission": "^6.24"
+        "spatie/laravel-permission": "^6.24",
+        "symfony/css-selector": "^7.4",
+        "symfony/dom-crawler": "^7.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

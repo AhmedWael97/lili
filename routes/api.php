@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ContentApiController;
 use App\Http\Controllers\Api\AgentApiController;
+use App\Http\Controllers\Api\MarketResearchController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -9,6 +10,14 @@ use Illuminate\Support\Facades\Route;
 | API Routes
 |--------------------------------------------------------------------------
 */
+
+// Market Research API (public for beta - no auth required)
+Route::prefix('market-research')->group(function () {
+    Route::post('/', [MarketResearchController::class, 'submitResearch']);
+    Route::get('/{id}/status', [MarketResearchController::class, 'getStatus']);
+    Route::get('/{id}/report', [MarketResearchController::class, 'getReport']);
+    Route::get('/requests', [MarketResearchController::class, 'listRequests']);
+});
 
 Route::middleware(['auth:sanctum'])->group(function () {
     

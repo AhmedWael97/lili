@@ -1,10 +1,13 @@
-@extends('dashboard.layout')
+@extends('layouts.marketing-os')
 
 @section('title', 'Billing')
-@section('page-title', 'Billing & Subscription')
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="py-8">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Billing & Subscription</h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Current Plan -->
     <div class="lg:col-span-2">
         <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -152,6 +155,8 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
     </div>
 </div>
 @endsection

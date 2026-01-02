@@ -1,10 +1,13 @@
-@extends('dashboard.layout')
+@extends('layouts.marketing-os')
 
 @section('title', 'Analytics')
-@section('page-title', 'Analytics & Insights')
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+<div class="py-8">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Analytics & Insights</h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
     <div class="bg-white rounded-lg shadow p-6">
         <p class="text-sm text-gray-600">Total Reach</p>
         <p class="text-3xl font-bold text-gray-900 mt-2">24.5K</p>
@@ -82,6 +85,8 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
     </div>
 </div>
 @endsection

@@ -1,9 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.marketing-os')
 
 @section('title', 'Marketing OS')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 py-8">
+<div class="py-8">
     <div class="container mx-auto px-4">
         <!-- Header -->
         <div class="mb-8">
@@ -138,8 +138,8 @@
 </div>
 
 <!-- Add Competitor Modal -->
-<div id="competitorModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+<div id="competitorModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+    <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 my-8">
         <h3 class="text-2xl font-bold text-gray-900 mb-4">Add Competitor</h3>
         <form id="competitorForm" onsubmit="addCompetitor(event)">
             <div class="mb-4">
@@ -164,21 +164,23 @@
 </div>
 
 <!-- Competitor Details Modal -->
-<div id="competitorDetailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
-            <div>
-                <h3 class="text-2xl font-bold text-gray-900" id="detailCompName"></h3>
-                <a id="detailCompWebsite" href="#" target="_blank" class="text-blue-600 hover:underline text-sm"></a>
+<!-- Competitor Details Modal -->
+<div id="competitorDetailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl max-w-4xl w-full my-8">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between rounded-t-xl z-10">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900" id="detailCompName"></h3>
+                    <a id="detailCompWebsite" href="#" target="_blank" class="text-blue-600 hover:underline text-sm"></a>
+                </div>
+                <button onclick="hideCompetitorDetails()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
             </div>
-            <button onclick="hideCompetitorDetails()" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="p-6 space-y-6">
+            
+            <div class="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-88px)]">
             <!-- Positioning -->
             <div class="bg-purple-50 rounded-lg p-4">
                 <h4 class="font-semibold text-gray-900 mb-2 flex items-center">

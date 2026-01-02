@@ -71,6 +71,7 @@ class MarketingOSController extends Controller
             'website' => 'nullable|url',
             'industry' => 'required|string|max:255',
             'country' => 'required|string|max:2',
+            'language' => 'required|string|in:en,ar',
             'currency' => 'nullable|string|max:3',
             'description' => 'nullable|string',
             'target_audience' => 'nullable|array',

@@ -1,11 +1,13 @@
-@extends('dashboard.layout')
+@extends('layouts.marketing-os')
 
 @section('title', 'Settings')
-@section('page-title', 'Settings')
 
 @section('content')
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="bg-white rounded-lg shadow mb-6">
+<div class="py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Settings</h1>
+        
+        <div class="bg-white rounded-lg shadow mb-6">
         <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Profile Information</h3>
         </div>
@@ -291,6 +293,7 @@
                 </button>
             </form>
         </div>
+    </div>
     </div>
 </div>
 @endsection

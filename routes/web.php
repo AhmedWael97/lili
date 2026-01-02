@@ -6,6 +6,7 @@ use App\Http\Controllers\FacebookOAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\Marketing\MarketingOSController;
+use App\Http\Controllers\MarketResearchWebController;
 use App\Models\Package;
 use Illuminate\Support\Facades\Route;
 
@@ -79,6 +80,13 @@ Route::middleware(['auth', 'subscription.active'])->prefix('marketing/os')->name
     Route::get('/competitor/{id}/backlinks', [MarketingOSController::class, 'getCompetitorBacklinks'])->name('competitor-backlinks');
     Route::get('/competitor/{id}/social', [MarketingOSController::class, 'getCompetitorSocial'])->name('competitor-social');
     Route::get('/export-strategy/{id}', [MarketingOSController::class, 'exportStrategy'])->name('export-strategy');
+});
+
+// Market Research routes
+Route::middleware(['auth', 'subscription.active'])->prefix('market-research')->name('market-research.')->group(function () {
+    Route::get('/', [MarketResearchWebController::class, 'index'])->name('index');
+    Route::get('/requests', [MarketResearchWebController::class, 'requests'])->name('requests');
+    Route::get('/report/{id}', [MarketResearchWebController::class, 'show'])->name('report');
 });
 
 // Agent Management routes

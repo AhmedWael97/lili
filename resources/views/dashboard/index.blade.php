@@ -1,9 +1,10 @@
-@extends('dashboard.layout')
+@extends('layouts.marketing-os')
 
 @section('title', 'Dashboard')
-@section('page-title', 'Dashboard')
 
 @section('content')
+<div class="py-8">
+    <div class="container mx-auto px-4">
 @php
     $activeAgents = auth()->user()->userAgents()->where('status', 'active')->with('agentType')->get();
     $activeAgentsCount = $activeAgents->count();

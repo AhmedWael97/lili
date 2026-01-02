@@ -50,6 +50,11 @@ return [
         'app_access_token' => env('FACEBOOK_APP_ACCESS_TOKEN'),
     ],
 
+    'google' => [
+        'api_key' => env('GOOGLE_API_KEY'),
+        'search_engine_id' => env('GOOGLE_SEARCH_ENGINE_ID'),
+    ],
+
     'socialblade' => [
         'client_id' => env('SOCIALBLADE_CLIENT_ID'),
         'token' => env('SOCIALBLADE_TOKEN'),

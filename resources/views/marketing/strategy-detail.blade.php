@@ -1,9 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.marketing-os')
 
 @section('title', 'Strategy - ' . $strategy->name)
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 py-8">
+<div class="py-8">
     <div class="container mx-auto px-4">
         <div class="mb-6">
             <a href="{{ route('marketing.os.index') }}" class="text-purple-600 hover:underline">← Back to Dashboard</a>

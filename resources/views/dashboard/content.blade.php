@@ -1,10 +1,13 @@
-@extends('dashboard.layout')
+@extends('layouts.marketing-os')
 
 @section('title', 'Content')
-@section('page-title', 'Content Management')
 
 @section('content')
-<div class="mb-6 flex items-center justify-between">
+<div class="py-8">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Content Management</h1>
+        
+        <div class="mb-6 flex items-center justify-between">
     <div class="flex space-x-4">
         <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">All</button>
         <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Draft</button>
@@ -140,4 +143,6 @@ function deleteContent(id) {
     }
 }
 </script>
+    </div>
+</div>
 @endsection

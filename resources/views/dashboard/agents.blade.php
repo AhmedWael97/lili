@@ -1,10 +1,13 @@
-@extends('dashboard.layout')
+@extends('layouts.marketing-os')
 
 @section('title', 'AI Agents')
-@section('page-title', 'AI Agents')
 
 @section('content')
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="py-8">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">AI Agents</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <!-- Strategist Agent -->
     <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center mb-4">
@@ -221,6 +224,8 @@
             <p class="text-xs">🎯 Context-aware decisions</p>
             <p class="text-xs">🔄 Continuous learning</p>
         </div>
+    </div>
+</div>
     </div>
 </div>
 @endsection

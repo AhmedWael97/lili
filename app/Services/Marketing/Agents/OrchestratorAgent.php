@@ -48,6 +48,11 @@ class OrchestratorAgent
 
             $results = [];
             
+            // Prepare language instruction for all agents
+            $languageInstruction = $brand->language === 'ar' 
+                ? 'IMPORTANT: You MUST respond ENTIRELY in Arabic language. All analysis, recommendations, and content must be in Arabic (العربية).'
+                : '';
+            
             // Step 1: Market Research
             Log::info("Orchestrator: Running MarketResearchAgent");
             $marketResult = $this->marketAgent->analyze([
@@ -55,6 +60,8 @@ class OrchestratorAgent
                 'country' => $brand->country,
                 'target_audience' => $brand->target_audience,
                 'additional_context' => $brand->description,
+                'language' => $brand->language,
+                'language_instruction' => $languageInstruction,
             ]);
 
             if (!$marketResult['success']) {
@@ -102,6 +109,8 @@ class OrchestratorAgent
                 'description' => $brand->description,
                 'market_data' => $results['market_research'],
                 'competitor_data' => $competitorData,
+                'language' => $brand->language,
+                'language_instruction' => $languageInstruction,
             ]);
 
             if (!$swotResult['success']) {
@@ -120,6 +129,8 @@ class OrchestratorAgent
                 'budget_tier' => $brand->budget_tier,
                 'swot' => $results['swot'],
                 'positioning' => $results['positioning'],
+                'language' => $brand->language,
+                'language_instruction' => $languageInstruction,
             ]);
 
             if (!$strategyResult['success']) {
@@ -137,6 +148,8 @@ class OrchestratorAgent
                 'description' => $brand->description,
                 'positioning' => $results['positioning'],
                 'target_audience' => $brand->target_audience,
+                'language' => $brand->language,
+                'language_instruction' => $languageInstruction,
             ]);
 
             if (!$messagingResult['success']) {
@@ -153,6 +166,8 @@ class OrchestratorAgent
                 'industry' => $brand->industry,
                 'country' => $brand->country,
                 'channels' => $channels,
+                'language' => $brand->language,
+                'language_instruction' => $languageInstruction,
             ]);
 
             if ($analyticsResult['success']) {
@@ -165,6 +180,8 @@ class OrchestratorAgent
                 'industry' => $brand->industry,
                 'country' => $brand->country,
                 'products_services' => $brand->products_services,
+                'language' => $brand->language,
+                'language_instruction' => $languageInstruction,
                 'strategy' => $results['strategy'],
             ]);
 

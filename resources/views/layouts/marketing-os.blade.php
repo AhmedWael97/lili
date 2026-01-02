@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'LiLi') }}</title>
+    <title>@yield('title', 'Marketing OS') - {{ config('app.name', 'LiLi') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -13,8 +13,10 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    @stack('styles')
 </head>
-<body class="font-sans antialiased bg-gray-50 text-gray-900">
+<body class="font-sans antialiased text-gray-900">
     <div class="min-h-screen flex">
         <!-- Sidebar -->
         <aside class="w-64 bg-white border-r border-gray-200 fixed h-full z-10 hidden md:block">
@@ -65,7 +67,7 @@
                     Analytics
                 </a>
 
-                <div class="mt-8 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Tools</div>
+                 <div class="mt-8 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Tools</div>
 
                 <a href="{{ route('market-research.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('market-research.*') ? 'bg-lili-50 text-lili-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,10 +111,10 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <div class="flex-1 md:ml-64 flex flex-col min-h-screen">
+        <!-- Main Content with Marketing OS Gradient Background -->
+        <div class="flex-1 md:ml-64 flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50">
             <!-- Top Header -->
-            <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 sticky top-0 z-10">
+            <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 sticky top-0 z-20">
                 <div class="flex items-center gap-4">
                     <button class="md:hidden text-gray-500 hover:text-gray-700">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,12 +151,12 @@
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 p-6 overflow-y-auto">
+            <main class="flex-1 overflow-y-auto">
                 @yield('content')
             </main>
         </div>
     </div>
-    
+
     @stack('scripts')
 </body>
 </html>

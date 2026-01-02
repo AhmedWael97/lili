@@ -62,8 +62,9 @@ PROMPT;
             $country = $params['country'] ?? 'US';
             $targetAudience = $params['target_audience'] ?? null;
             $additionalContext = $params['additional_context'] ?? '';
+            $languageInstruction = $params['language_instruction'] ?? '';
 
-            $userMessage = $this->buildUserMessage($industry, $country, $targetAudience, $additionalContext);
+            $userMessage = $this->buildUserMessage($industry, $country, $targetAudience, $additionalContext, $languageInstruction);
 
             $result = $this->openai->chatJson($this->systemPrompt, $userMessage, [
                 'temperature' => 0.6,
@@ -88,9 +89,16 @@ PROMPT;
     /**
      * Build user message from parameters
      */
-    protected function buildUserMessage(string $industry, string $country, ?string $targetAudience, string $additionalContext): string
+    protected function buildUserMessage(string $industry, string $country, ?string $targetAudience, string $additionalContext, string $languageInstruction = ''): string
     {
-        $message = "Industry: {$industry}\n";
+        $message = '';
+        
+        // Add language instruction first if provided
+        if ($languageInstruction) {
+            $message .= $languageInstruction . "\n\n";
+        }
+        
+        $message .= "Industry: {$industry}\n";
         $message .= "Country: {$country}\n";
         
         if ($targetAudience) {

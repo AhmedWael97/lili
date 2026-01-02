@@ -1,10 +1,13 @@
-@extends('dashboard.layout')
+@extends('layouts.marketing-os')
 
 @section('title', 'Platforms')
-@section('page-title', 'Connected Platforms')
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="py-8">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Connected Platforms</h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Facebook Connection -->
     <div class="lg:col-span-2">
         <div class="bg-white rounded-lg shadow">
@@ -207,6 +210,8 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
     </div>
 </div>
 @endsection
