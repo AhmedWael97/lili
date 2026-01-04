@@ -509,7 +509,7 @@
                                                         </svg>
                                                     </button>
                                                 </div>
-                                                <div class="p-4 space-y-3 overflow-y-auto flex-1"
+                                                <div class="p-4 space-y-3 overflow-y-auto flex-1">
                                                     @foreach($competitor->reviews as $review)
                                                         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                                             <div class="flex justify-between items-start mb-2">
@@ -689,123 +689,324 @@
                 </div>
                 @endif
 
-                <!-- Competitive Advantage Analysis -->
-                @if($request->competitors->count() > 0 && $request->customerInsights)
+                <!-- Competitive Advantage Analysis (AI-Powered) -->
+                @if($request->competitiveAdvantage)
                 <div class="bg-white rounded-lg shadow-md p-8">
                     <h2 class="text-2xl font-bold text-gray-900 mb-6">⚔️ Competitive Advantage Analysis</h2>
                     
-                    <!-- Competitor Strengths & Weaknesses -->
+                    @php
+                        $advantage = $request->competitiveAdvantage;
+                        $strengths = is_array($advantage->competitor_strengths) ? $advantage->competitor_strengths : json_decode($advantage->competitor_strengths ?? '[]', true);
+                        $weaknesses = is_array($advantage->competitor_weaknesses) ? $advantage->competitor_weaknesses : json_decode($advantage->competitor_weaknesses ?? '[]', true);
+                        $gaps = is_array($advantage->market_gaps) ? $advantage->market_gaps : json_decode($advantage->market_gaps ?? '[]', true);
+                        $opportunities = is_array($advantage->differentiation_opportunities) ? $advantage->differentiation_opportunities : json_decode($advantage->differentiation_opportunities ?? '[]', true);
+                        $uvps = is_array($advantage->unique_value_propositions) ? $advantage->unique_value_propositions : json_decode($advantage->unique_value_propositions ?? '[]', true);
+                    @endphp
+
+                    <!-- Competitor Strengths -->
+                    @if(!empty($strengths))
                     <div class="mb-8">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Competitor Positioning</h3>
-                        <div class="space-y-4">
-                            @foreach($request->competitors->take(5) as $competitor)
-                                @php
-                                    $strengths = [];
-                                    $weaknesses = [];
-                                    
-                                    // Analyze pricing
-                                    if($competitor->pricing->count() > 0) {
-                                        $avgCompPrice = $competitor->pricing->where('price', '>', 0)->avg('price');
-                                        if($avgCompPrice > $avgPrice) $weaknesses[] = 'Premium pricing may limit market penetration';
-                                        elseif($avgCompPrice < $avgPrice * 0.7) $strengths[] = 'Competitive pricing advantage';
-                                    }
-                                    
-                                    // Analyze reviews
-                                    if($competitor->overall_rating && $competitor->overall_rating >= 4.5) {
-                                        $strengths[] = 'High customer satisfaction (' . $competitor->overall_rating . '★)';
-                                    } elseif($competitor->overall_rating && $competitor->overall_rating < 3.5) {
-                                        $weaknesses[] = 'Low customer satisfaction (' . $competitor->overall_rating . '★)';
-                                    }
-                                    
-                                    // Extract from reviews
-                                    foreach($competitor->reviews->take(10) as $review) {
-                                        if($review->pros) {
-                                            $prosArr = explode(',', $review->pros);
-                                            if(count($prosArr) > 0) $strengths[] = trim($prosArr[0]);
-                                        }
-                                        if($review->cons) {
-                                            $consArr = explode(',', $review->cons);
-                                            if(count($consArr) > 0) $weaknesses[] = trim($consArr[0]);
-                                        }
-                                    }
-                                    
-                                    $strengths = array_unique(array_slice($strengths, 0, 3));
-                                    $weaknesses = array_unique(array_slice($weaknesses, 0, 3));
-                                @endphp
-                                
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">💪 Competitor Strengths</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            @foreach($strengths as $item)
                                 <div class="border border-gray-200 rounded-lg p-4">
-                                    <h4 class="font-bold text-gray-900 mb-3">{{ $competitor->name }}</h4>
-                                    <div class="grid md:grid-cols-2 gap-4">
-                                        <div>
-                                            <div class="text-xs font-semibold text-green-700 mb-2">💪 Strengths:</div>
-                                            <ul class="space-y-1">
-                                                @forelse($strengths as $strength)
-                                                    <li class="text-xs text-gray-700 flex items-start">
-                                                        <span class="text-green-500 mr-1">✓</span>
-                                                        <span>{{ $strength }}</span>
-                                                    </li>
-                                                @empty
-                                                    <li class="text-xs text-gray-500">No significant strengths identified</li>
-                                                @endforelse
-                                            </ul>
+                                    <div class="flex items-start gap-3">
+                                        <div class="flex-shrink-0">
+                                            @if(($item['impact'] ?? 'Medium') === 'High')
+                                                <span class="inline-block bg-red-100 text-red-800 text-xs font-semibold px-2 py-1 rounded">HIGH IMPACT</span>
+                                            @elseif(($item['impact'] ?? 'Medium') === 'Medium')
+                                                <span class="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-1 rounded">MEDIUM</span>
+                                            @else
+                                                <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">LOW</span>
+                                            @endif
                                         </div>
-                                        <div>
-                                            <div class="text-xs font-semibold text-red-700 mb-2">⚠️ Weaknesses:</div>
-                                            <ul class="space-y-1">
-                                                @forelse($weaknesses as $weakness)
-                                                    <li class="text-xs text-gray-700 flex items-start">
-                                                        <span class="text-red-500 mr-1">×</span>
-                                                        <span>{{ $weakness }}</span>
-                                                    </li>
-                                                @empty
-                                                    <li class="text-xs text-gray-500">No significant weaknesses identified</li>
-                                                @endforelse
-                                            </ul>
+                                        <div class="flex-1">
+                                            <h4 class="font-bold text-gray-900 text-sm mb-1">{{ $item['competitor'] ?? 'Unknown' }}</h4>
+                                            <p class="text-sm text-gray-700 mb-2">{{ $item['strength'] ?? '' }}</p>
+                                            @if(!empty($item['evidence']))
+                                                <p class="text-xs text-gray-500 italic">Evidence: {{ $item['evidence'] }}</p>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
                     </div>
+                    @endif
 
-                    <!-- Your Unique Positioning Suggestions -->
-                    <div class="bg-gradient-to-r from-lili-50 to-purple-50 rounded-lg p-6 border-2 border-lili-300">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4">💡 Your Unique Positioning Strategy</h3>
-                        @php
-                            $allWeaknesses = [];
-                            foreach($request->competitors as $comp) {
-                                foreach($comp->reviews as $review) {
-                                    if($review->cons) {
-                                        $allWeaknesses[] = $review->cons;
-                                    }
-                                    if($review->pain_points && is_array($review->pain_points)) {
-                                        $allWeaknesses = array_merge($allWeaknesses, $review->pain_points);
-                                    }
-                                }
-                            }
-                            $suggestions = array_unique(array_slice($allWeaknesses, 0, 5));
-                        @endphp
-                        
+                    <!-- Competitor Weaknesses -->
+                    @if(!empty($weaknesses))
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">⚠️ Competitor Weaknesses & Opportunities</h3>
                         <div class="space-y-3">
-                            @forelse($suggestions as $index => $suggestion)
-                                <div class="bg-white rounded-lg p-4 border border-lili-200">
+                            @foreach($weaknesses as $item)
+                                <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
                                     <div class="flex items-start gap-3">
-                                        <div class="bg-lili-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                                            {{ $index + 1 }}
+                                        <div class="flex-shrink-0">
+                                            @if(($item['severity'] ?? 'Medium') === 'High')
+                                                <span class="inline-block bg-green-600 text-white text-xs font-semibold px-2 py-1 rounded">HIGH OPPORTUNITY</span>
+                                            @elseif(($item['severity'] ?? 'Medium') === 'Medium')
+                                                <span class="inline-block bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded">MEDIUM</span>
+                                            @else
+                                                <span class="inline-block bg-green-400 text-white text-xs font-semibold px-2 py-1 rounded">LOW</span>
+                                            @endif
                                         </div>
-                                        <div>
-                                            <h4 class="font-semibold text-gray-900 text-sm mb-1">Address: {{ Str::limit($suggestion, 60) }}</h4>
-                                            <p class="text-xs text-gray-600">
-                                                This is a common pain point among competitors. Make this a core feature of your offering to differentiate.
+                                        <div class="flex-1">
+                                            <h4 class="font-bold text-gray-900 text-sm mb-1">{{ $item['competitor'] ?? 'Unknown' }}</h4>
+                                            <p class="text-sm text-gray-700 mb-2"><strong>Weakness:</strong> {{ $item['weakness'] ?? '' }}</p>
+                                            <p class="text-sm text-green-800 bg-white bg-opacity-60 p-2 rounded">
+                                                <strong>💡 How to Exploit:</strong> {{ $item['opportunity'] ?? '' }}
                                             </p>
                                         </div>
                                     </div>
                                 </div>
-                            @empty
-                                <p class="text-sm text-gray-600">Analyze competitor reviews to identify gaps you can fill.</p>
-                            @endforelse
+                            @endforeach
                         </div>
                     </div>
+                    @endif
+
+                    <!-- Market Gaps -->
+                    @if(!empty($gaps))
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">🎯 Market Gaps</h3>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            @foreach($gaps as $gap)
+                                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-purple-600 text-xl">•</span>
+                                        <span class="text-xs font-semibold {{ ($gap['size'] ?? 'Medium') === 'Large' ? 'text-purple-700' : 'text-purple-600' }}">
+                                            {{ strtoupper($gap['size'] ?? 'Medium') }} GAP
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-gray-800 mb-2">{{ $gap['gap'] ?? '' }}</p>
+                                    <div class="text-xs text-gray-600">
+                                        <strong>Difficulty:</strong> 
+                                        <span class="{{ ($gap['difficulty'] ?? 'Medium') === 'Hard' ? 'text-red-600' : (($gap['difficulty'] ?? 'Medium') === 'Easy' ? 'text-green-600' : 'text-amber-600') }}">
+                                            {{ $gap['difficulty'] ?? 'Medium' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Differentiation Opportunities -->
+                    @if(!empty($opportunities))
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">🚀 Differentiation Opportunities</h3>
+                        <div class="space-y-3">
+                            @foreach($opportunities as $index => $opp)
+                                <div class="bg-white border-2 border-lili-200 rounded-lg p-4 hover:border-lili-400 transition">
+                                    <div class="flex items-start gap-3">
+                                        <div class="bg-lili-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                            {{ $index + 1 }}
+                                        </div>
+                                        <div class="flex-1">
+                                            <h4 class="font-bold text-gray-900 mb-2">{{ $opp['opportunity'] ?? '' }}</h4>
+                                            <p class="text-sm text-gray-700 mb-2">{{ $opp['rationale'] ?? '' }}</p>
+                                            @if(!empty($opp['implementation']))
+                                                <p class="text-sm text-lili-700 bg-lili-50 p-2 rounded">
+                                                    <strong>Implementation:</strong> {{ $opp['implementation'] }}
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Strategic Positioning -->
+                    @if($advantage->competitive_positioning)
+                    <div class="bg-gradient-to-r from-lili-50 to-purple-50 border-2 border-lili-300 rounded-lg p-6 mb-8">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">🎯 Recommended Strategic Positioning</h3>
+                        <div class="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                            {!! nl2br(e($advantage->competitive_positioning)) !!}
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Unique Value Propositions -->
+                    @if(!empty($uvps))
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">✨ Your Unique Value Propositions</h3>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            @foreach($uvps as $uvp)
+                                <div class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+                                    <span class="text-amber-500 text-xl flex-shrink-0">🌟</span>
+                                    <p class="text-sm text-gray-800 font-medium">{{ $uvp }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                </div>
+                @endif
+
+                <!-- SEO & Google Ads Analysis -->
+                @if($request->seoAnalysis)
+                <div class="bg-white rounded-lg shadow-md p-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">🔍 SEO & Google Ads Analysis</h2>
+                    
+                    @php
+                        $seo = $request->seoAnalysis;
+                        $primaryKeywords = is_array($seo->primary_keywords) ? $seo->primary_keywords : json_decode($seo->primary_keywords ?? '[]', true);
+                        $secondaryKeywords = is_array($seo->secondary_keywords) ? $seo->secondary_keywords : json_decode($seo->secondary_keywords ?? '[]', true);
+                        $competitorAdSpend = is_array($seo->competitor_ad_spend) ? $seo->competitor_ad_spend : json_decode($seo->competitor_ad_spend ?? '[]', true);
+                        $topRanking = is_array($seo->top_ranking_competitors) ? $seo->top_ranking_competitors : json_decode($seo->top_ranking_competitors ?? '[]', true);
+                        $seoOpps = is_array($seo->seo_opportunities) ? $seo->seo_opportunities : json_decode($seo->seo_opportunities ?? '[]', true);
+                    @endphp
+
+                    <!-- Keywords Overview -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">🎯 Target Keywords</h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Primary Keywords -->
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                    <span class="text-blue-600">🔵</span> Primary Keywords
+                                </h4>
+                                <div class="flex flex-wrap gap-2">
+                                    @forelse($primaryKeywords as $keyword)
+                                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">{{ $keyword }}</span>
+                                    @empty
+                                        <p class="text-sm text-gray-500">No primary keywords identified</p>
+                                    @endforelse
+                                </div>
+                            </div>
+
+                            <!-- Secondary Keywords -->
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                    <span class="text-purple-600">🟣</span> Secondary Keywords
+                                </h4>
+                                <div class="flex flex-wrap gap-2">
+                                    @forelse($secondaryKeywords as $keyword)
+                                        <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">{{ $keyword }}</span>
+                                    @empty
+                                        <p class="text-sm text-gray-500">No secondary keywords identified</p>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Keyword Difficulty -->
+                        @if($seo->keyword_difficulty)
+                        <div class="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-semibold text-gray-700">Overall Keyword Difficulty:</span>
+                                <span class="px-3 py-1 rounded-full text-sm font-bold 
+                                    {{ $seo->keyword_difficulty === 'Low' ? 'bg-green-100 text-green-800' : '' }}
+                                    {{ $seo->keyword_difficulty === 'Medium' ? 'bg-amber-100 text-amber-800' : '' }}
+                                    {{ $seo->keyword_difficulty === 'High' ? 'bg-orange-100 text-orange-800' : '' }}
+                                    {{ $seo->keyword_difficulty === 'Very High' ? 'bg-red-100 text-red-800' : '' }}">
+                                    {{ $seo->keyword_difficulty }}
+                                </span>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Google Ads Cost Estimates -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">💰 Google Ads Cost Estimates</h3>
+                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6">
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div class="text-center">
+                                    <div class="text-sm text-gray-600 mb-2">Cost Per Click (CPC)</div>
+                                    <div class="text-2xl font-bold text-gray-900">
+                                        ${{ number_format($seo->estimated_cpc_low ?? 0, 2) }} - ${{ number_format($seo->estimated_cpc_high ?? 0, 2) }}
+                                    </div>
+                                </div>
+                                <div class="text-center border-l border-r border-green-200">
+                                    <div class="text-sm text-gray-600 mb-2">Recommended Monthly Budget</div>
+                                    <div class="text-3xl font-bold text-green-700">
+                                        ${{ number_format($seo->estimated_monthly_budget ?? 0, 0) }}
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm text-gray-600 mb-2">Estimated Clicks/Month</div>
+                                    <div class="text-2xl font-bold text-gray-900">
+                                        {{ $seo->estimated_cpc_high > 0 ? number_format(($seo->estimated_monthly_budget ?? 0) / $seo->estimated_cpc_high, 0) : 0 }} - 
+                                        {{ $seo->estimated_cpc_low > 0 ? number_format(($seo->estimated_monthly_budget ?? 0) / $seo->estimated_cpc_low, 0) : 0 }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Competitor Ad Spend -->
+                    @if(!empty($competitorAdSpend))
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">💵 Competitor Ad Spend Estimates</h3>
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($competitorAdSpend as $competitor => $spend)
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <h4 class="font-bold text-gray-900 text-sm mb-2">{{ $competitor }}</h4>
+                                    <p class="text-2xl font-bold text-blue-600">{{ $spend }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">Estimated monthly Google Ads spend</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Top Ranking Competitors -->
+                    @if(!empty($topRanking))
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">🏆 Top Organic Ranking Competitors</h3>
+                        <div class="flex flex-wrap gap-3">
+                            @foreach($topRanking as $competitor)
+                                <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
+                                    <span class="text-sm font-semibold text-gray-900">{{ $competitor }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- SEO Opportunities -->
+                    @if(!empty($seoOpps))
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">🎯 SEO Opportunities</h3>
+                        <div class="space-y-3">
+                            @foreach($seoOpps as $index => $opportunity)
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+                                    <div class="bg-blue-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                        {{ $index + 1 }}
+                                    </div>
+                                    <p class="text-sm text-gray-800 flex-1">{{ $opportunity }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Content Strategy -->
+                    @if($seo->content_strategy)
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">📝 Content Strategy</h3>
+                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
+                            <div class="prose prose-sm max-w-none text-gray-700">
+                                {!! nl2br(e($seo->content_strategy)) !!}
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Organic vs Paid Recommendation -->
+                    @if($seo->organic_vs_paid_recommendation)
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">⚖️ Organic vs Paid Strategy</h3>
+                        <div class="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-lg p-6">
+                            <div class="prose prose-sm max-w-none text-gray-700">
+                                {!! nl2br(e($seo->organic_vs_paid_recommendation)) !!}
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
                 @endif
 
