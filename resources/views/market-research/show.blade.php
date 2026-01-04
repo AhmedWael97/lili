@@ -498,18 +498,18 @@
                                             </svg>
                                         </button>
                                         
-                                        <!-- Reviews Modal -->
+                                        <!-- Reviews Modal (Fixed: Smaller & Scrollable) -->
                                         <div id="reviews-modal-{{ $competitor->id }}" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                                            <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                                                <div class="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-                                                    <h3 class="text-xl font-bold text-gray-900">{{ $competitor->name }} - Customer Reviews</h3>
+                                            <div class="bg-white rounded-lg max-w-3xl w-full max-h-[80vh] flex flex-col">
+                                                <div class="flex-shrink-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center rounded-t-lg">
+                                                    <h3 class="text-lg font-bold text-gray-900">{{ $competitor->name }} - Customer Reviews</h3>
                                                     <button onclick="closeReviews({{ $competitor->id }})" class="text-gray-400 hover:text-gray-600">
                                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                                         </svg>
                                                     </button>
                                                 </div>
-                                                <div class="p-6 space-y-4">
+                                                <div class="p-4 space-y-3 overflow-y-auto flex-1"
                                                     @foreach($competitor->reviews as $review)
                                                         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                                             <div class="flex justify-between items-start mb-2">
