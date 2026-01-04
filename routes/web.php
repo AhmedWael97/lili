@@ -5,6 +5,14 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Models\Package;
 use Illuminate\Support\Facades\Route;
 
+
+
+
+Route::get('/run-queue', function() {
+    \Artisan::call('queue:work --stop-when-empty');
+    return "Queue worker started";
+});
+
 Route::get('/new-migrate',function() {
     \Artisan::call("migrate");
     return "migrated";
