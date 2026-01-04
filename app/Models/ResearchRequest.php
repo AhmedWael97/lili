@@ -16,11 +16,15 @@ class ResearchRequest extends Model
         'user_id',
         'business_idea',
         'location',
+        'industry',
         'status',
+        'error_message',
+        'started_at',
         'completed_at',
     ];
 
     protected $casts = [
+        'started_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
 
@@ -38,6 +42,30 @@ class ResearchRequest extends Model
     public function competitors(): HasMany
     {
         return $this->hasMany(Competitor::class);
+    }
+
+    /**
+     * Get the forum discussions for the research request.
+     */
+    public function forumDiscussions(): HasMany
+    {
+        return $this->hasMany(ForumDiscussion::class);
+    }
+
+    /**
+     * Get the market data for the research request.
+     */
+    public function marketData(): HasOne
+    {
+        return $this->hasOne(MarketData::class);
+    }
+
+    /**
+     * Get the customer insights for the research request.
+     */
+    public function customerInsights(): HasOne
+    {
+        return $this->hasOne(CustomerInsight::class);
     }
 
     /**

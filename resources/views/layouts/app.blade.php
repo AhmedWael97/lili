@@ -28,44 +28,6 @@
             </div>
             
             <nav class="p-4 space-y-1 overflow-y-auto h-[calc(100vh-4rem)]">
-                {{-- <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Main</div>
-                
-                <a href="{{ route('dashboard.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('dashboard.index') ? 'bg-lili-50 text-lili-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                    </svg>
-                    Overview
-                </a>
-
-                <a href="{{ route('marketing.os.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('marketing.os.*') ? 'bg-lili-50 text-lili-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                    Marketing OS
-                </a>
-
-                <a href="{{ route('agents.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('agents.*') ? 'bg-lili-50 text-lili-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-                    </svg>
-                    AI Agents
-                </a>
-
-                <a href="{{ route('dashboard.platforms') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('dashboard.platforms') ? 'bg-lili-50 text-lili-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-                    </svg>
-                    Platforms
-                </a>
-
-                <a href="{{ route('dashboard.analytics') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('dashboard.analytics') ? 'bg-lili-50 text-lili-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                    Analytics
-                </a>
-
-                <div class="mt-8 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Tools</div> --}}
 
                 <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Tools</div>
 
@@ -134,19 +96,9 @@
                     
                     <div class="h-8 w-px bg-gray-200 mx-2"></div>
                     
-                    @php
-                        $hasActiveAgents = Auth::check() && Auth::user()->userAgents()->where('status', 'active')->exists();
-                    @endphp
-                    
-                    @if($hasActiveAgents)
-                        <a href="{{ route('marketing.os.index') }}" class="bg-lili-600 hover:bg-lili-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                            Use Marketing OS
-                        </a>
-                    @else
-                        <a href="{{ route('marketing.os.index') }}" class="bg-lili-600 hover:bg-lili-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                            Setup Marketing OS
-                        </a>
-                    @endif
+                    <a href="{{ route('market-research.index') }}" class="bg-lili-600 hover:bg-lili-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        Market Research
+                    </a>
                 </div>
             </header>
 

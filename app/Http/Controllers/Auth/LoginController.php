@@ -4,14 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Repositories\AuditLogRepository;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    public function __construct(
-        protected AuditLogRepository $auditRepo
-    ) {}
 
     /**
      * Show login form
@@ -35,13 +31,13 @@ class LoginController extends Controller
             $user = Auth::user();
 
             // Log successful login
-            $this->auditRepo->log(
-                'user_logged_in',
-                "User logged in",
-                $user->id,
-                'User',
-                $user->id
-            );
+            // $this->auditRepo->log(
+            //     'user_logged_in',
+            //     "User logged in",
+            //     $user->id,
+            //     'User',
+            //     $user->id
+            // );
 
             // Redirect based on role
             if ($user->isAdmin()) {

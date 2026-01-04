@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\FacebookService;
-use App\Repositories\AuditLogRepository;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Auth;
 use Exception;
@@ -12,8 +11,7 @@ use Exception;
 class FacebookOAuthController extends Controller
 {
     public function __construct(
-        protected FacebookService $facebookService,
-        protected AuditLogRepository $auditRepo
+        protected FacebookService $facebookService
     ) {}
 
     /**

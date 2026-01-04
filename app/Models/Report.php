@@ -13,16 +13,24 @@ class Report extends Model
     protected $fillable = [
         'research_request_id',
         'executive_summary',
-        'report_data',
+        'report_sections',
+        'opportunities',
+        'risks',
         'recommendations',
         'action_plan',
         'pdf_path',
+        'competitor_count',
+        'review_count',
     ];
 
     protected $casts = [
-        'report_data' => 'array',
+        'report_sections' => 'array',
+        'opportunities' => 'array',
+        'risks' => 'array',
         'recommendations' => 'array',
         'action_plan' => 'array',
+        'competitor_count' => 'integer',
+        'review_count' => 'integer',
     ];
 
     /**

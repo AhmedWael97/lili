@@ -14,92 +14,43 @@ class Competitor extends Model
 
     protected $fillable = [
         'research_request_id',
-        'business_name',
-        'website',
-        'facebook_url',
-        'facebook_handle',
-        'instagram_handle',
-        'twitter_handle',
-        'linkedin_url',
-        'address',
-        'phone',
-        'category',
-        'relevance_score',
-        // Legacy fields
-        'brand_id',
         'name',
-        'social_profiles',
-        'positioning',
-        'messaging',
-        'pricing_signals',
-        'channels',
-        'seo_data',
-        'content_strategy',
-        'strengths',
-        'weaknesses',
-        'analyzed_at',
+        'website',
+        'description',
+        'location',
+        'g2_url',
+        'capterra_url',
+        'trustpilot_url',
+        'producthunt_url',
+        'facebook_url',
+        'twitter_url',
+        'linkedin_url',
+        'overall_rating',
+        'review_count',
+        'relevance_score',
     ];
 
     protected $casts = [
-        'social_profiles' => 'array',
-        'positioning' => 'array',
-        'messaging' => 'array',
-        'pricing_signals' => 'array',
-        'channels' => 'array',
-        'seo_data' => 'array',
-        'content_strategy' => 'array',
-        'strengths' => 'array',
-        'weaknesses' => 'array',
-        'analyzed_at' => 'datetime',
+        'overall_rating' => 'float',
+        'review_count' => 'integer',
+        'relevance_score' => 'integer',
     ];
 
-    /**
-     * Get the research request that owns the competitor.
-     */
     public function researchRequest(): BelongsTo
     {
         return $this->belongsTo(ResearchRequest::class);
     }
 
-    /**
-     * Get the social metrics for the competitor.
-     */
-    public function socialMetrics(): HasMany
+    public function reviews(): HasMany
     {
-        return $this->hasMany(CompetitorSocialMetric::class);
+        return $this->hasMany(CompetitorReview::class);
     }
 
-    /**
-     * Get the posts for the competitor.
-     */
-    public function posts(): HasMany
+    public function pricing(): HasMany
     {
-        return $this->hasMany(CompetitorPost::class);
+        return $this->hasMany(CompetitorPricing::class);
     }
 
-    /**
-     * Get the social intelligence for the competitor.
-     */
-    public function socialIntelligence(): HasOne
-    {
-        return $this->hasOne(SocialIntelligence::class);
-    }
-
-    /**
-     * Get the feedbacks for the competitor.
-     */
-    public function feedbacks(): HasMany
-    {
-        return $this->hasMany(CompetitorFeedback::class);
-    }
-
-    /**
-     * Get social metric for a specific platform.
-     */
-    public function getMetricForPlatform(string $platform)
-    {
-        return $this->socialMetrics()->where('platform', $platform)->first();
-    }
 
     /**
      * Check if competitor has any social media presence.
@@ -143,12 +94,4 @@ class Competitor extends Model
         return $this->hasMany(CompetitorSocialProfile::class);
     }
 
-    /**
-     * Check if competitor data needs refresh
-     */
-    public function needsRefresh(): bool
-    {
-        return !$this->analyzed_at || 
-               $this->analyzed_at->diffInDays(now()) > 7;
-    }
 }

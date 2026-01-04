@@ -7,7 +7,9 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "barryvdh/laravel-dompdf": "^3.1",
         "facebook/graph-sdk": "*",
+        "guzzlehttp/guzzle": "^7.10",
         "laravel/cashier": "*",
         "laravel/framework": "^12.0",
         "laravel/socialite": "*",
@@ -16,8 +18,10 @@
         "predis/predis": "^3.3",
         "socialiteproviders/facebook": "*",
         "spatie/laravel-permission": "^6.24",
+        "symfony/browser-kit": "^7.4",
         "symfony/css-selector": "^7.4",
-        "symfony/dom-crawler": "^7.4"
+        "symfony/dom-crawler": "^7.4",
+        "symfony/http-client": "^7.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

@@ -165,7 +165,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-6">
+                    {{-- <div class="mt-6">
                         <a href="{{ route('facebook.redirect') }}" 
                            class="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-gray-200 rounded-xl hover:border-lili-300 hover:bg-white transition transform hover:scale-[1.02] active:scale-[0.98] group bg-white">
                             <svg class="w-5 h-5 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
@@ -173,7 +173,7 @@
                             </svg>
                             <span class="font-medium text-gray-700 group-hover:text-gray-900">Continue with Facebook</span>
                         </a>
-                    </div>
+                    </div> --}}
                 </div>
 
                 <div class="mt-8 text-center">

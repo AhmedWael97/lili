@@ -271,8 +271,8 @@
                     </button>
                 </form>
 
-                <div class="mt-4">
-                    <div class="relative">
+                {{-- Facebook OAuth temporarily disabled
+                <div class="mt-4">                    {{-- Facebook OAuth temporarily disabled                    <div class="relative">
                         <div class="absolute inset-0 flex items-center">
                             <div class="w-full border-t border-gray-300"></div>
                         </div>
@@ -291,8 +291,8 @@
                         </a>
                     </div>
                 </div>
-
-                <div class="mt-6 text-center pb-4">
+                --}}
+            </div>
                     <p class="text-sm text-gray-600">
                         Already have an account? 
                         <a href="{{ route('login') }}" class="font-semibold text-lili-600 hover:text-lili-700 transition">

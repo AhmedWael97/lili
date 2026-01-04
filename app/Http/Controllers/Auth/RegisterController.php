@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\SubscriptionService;
 use App\Repositories\UserRepository;
-use App\Repositories\AuditLogRepository;
 use App\Models\Package;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -16,8 +15,7 @@ class RegisterController extends Controller
 {
     public function __construct(
         protected UserRepository $userRepo,
-        protected SubscriptionService $subscriptionService,
-        protected AuditLogRepository $auditRepo
+        protected SubscriptionService $subscriptionService
     ) {}
 
     /**

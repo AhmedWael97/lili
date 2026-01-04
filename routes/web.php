@@ -20,11 +20,25 @@ Route::get('/clear-cache', function() {
 
 // Public routes
 Route::get('/', function () {
-    $packages = Package::where('is_active', true)
-        ->orderBy('price', 'asc')
-        ->get();
-    return view('welcome', compact('packages'));
+   
+    return view('welcome');
 })->name('home');
+
+// Market Research routes
+use App\Http\Controllers\MarketResearchController;
+
+Route::prefix('market-research')->name('market-research.')->group(function () {
+    Route::get('/', [MarketResearchController::class, 'index'])->name('index');
+    Route::post('/', [MarketResearchController::class, 'store'])->name('store');
+    Route::get('/{id}', [MarketResearchController::class, 'show'])->name('show');
+    Route::get('/{id}/status', [MarketResearchController::class, 'status'])->name('status');
+    Route::post('/{id}/retry', [MarketResearchController::class, 'retry'])->name('retry');
+    Route::get('/{id}/pdf', [MarketResearchController::class, 'downloadPdf'])->name('pdf');
+    
+    Route::middleware('auth')->group(function () {
+        Route::get('/my-research/history', [MarketResearchController::class, 'history'])->name('history');
+    });
+});
 
 // Authentication routes
 Route::middleware('guest')->group(function () {
