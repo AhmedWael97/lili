@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\Marketing\MarketingOSController;
 use App\Http\Controllers\MarketResearchWebController;
+use App\Http\Controllers\FeedbackWebController;
 use App\Models\Package;
 use Illuminate\Support\Facades\Route;
 
@@ -87,6 +88,14 @@ Route::middleware(['auth', 'subscription.active'])->prefix('market-research')->n
     Route::get('/', [MarketResearchWebController::class, 'index'])->name('index');
     Route::get('/requests', [MarketResearchWebController::class, 'requests'])->name('requests');
     Route::get('/report/{id}', [MarketResearchWebController::class, 'show'])->name('report');
+    Route::get('/{id}/verify', [FeedbackWebController::class, 'showVerification'])->name('verify');
+});
+
+// Feedback & Verification routes
+Route::middleware(['auth', 'subscription.active'])->prefix('feedback')->name('feedback.')->group(function () {
+    Route::post('/submit', [FeedbackWebController::class, 'submitFeedback'])->name('submit');
+    Route::get('/performance', [FeedbackWebController::class, 'showPerformance'])->name('performance');
+    Route::post('/train', [FeedbackWebController::class, 'trainAlgorithm'])->name('train');
 });
 
 // Agent Management routes

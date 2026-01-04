@@ -6,6 +6,8 @@ use App\Models\Competitor;
 use App\Models\ResearchRequest;
 use App\Services\MarketResearch\GoogleSearchService;
 use App\Services\MarketResearch\WebScraperService;
+use App\Services\MarketResearch\DataVerificationService;
+use App\Services\MarketResearch\CompetitorValidationService;
 use Illuminate\Support\Facades\Log;
 use OpenAI\Laravel\Facades\OpenAI;
 
@@ -13,13 +15,19 @@ class CompetitorFinderAgent
 {
     private GoogleSearchService $googleSearch;
     private WebScraperService $webScraper;
+    private DataVerificationService $verificationService;
+    private CompetitorValidationService $validationService;
 
     public function __construct(
         GoogleSearchService $googleSearch,
-        WebScraperService $webScraper
+        WebScraperService $webScraper,
+        DataVerificationService $verificationService,
+        CompetitorValidationService $validationService
     ) {
         $this->googleSearch = $googleSearch;
         $this->webScraper = $webScraper;
+        $this->verificationService = $verificationService;
+        $this->validationService = $validationService;
     }
 
     /**
@@ -45,9 +53,14 @@ class CompetitorFinderAgent
             return [];
         }
 
-        // Step 3: Extract social profiles from websites
+        // Step 2.5: Verify search results quality
+        $verifiedResults = $this->verificationService->batchVerifySearchResults($searchResults);
+        $validSearchResults = array_column($verifiedResults, 'result');
+        
         $competitors = [];
-        foreach ($searchResults as $result) {
+        
+        // Step 3: Process each valid search result
+        foreach ($validSearchResults as $result) {
             $competitor = $this->processSearchResult($result, $request->id);
             
             if ($competitor) {
@@ -58,15 +71,53 @@ class CompetitorFinderAgent
             sleep(1);
         }
 
-        // Step 4: Rank competitors by relevance
-        $rankedCompetitors = $this->rankCompetitors($competitors, $request->business_idea);
+        // Step 3.5: Remove duplicates
+        $deduplicationResult = $this->verificationService->detectDuplicates($competitors);
+        $uniqueCompetitors = $deduplicationResult['unique_competitors'];
+
+        Log::info('Duplicates removed', [
+            'original_count' => count($competitors),
+            'unique_count' => count($uniqueCompetitors),
+            'duplicates_removed' => $deduplicationResult['duplicate_count']
+        ]);
+
+        // Step 4: AI Pre-Filter - Intelligently screen data before user verification
+        $preFilterResult = $this->validationService->intelligentPreFilter(
+            $uniqueCompetitors,
+            $request->business_idea,
+            $request->location
+        );
+
+        Log::info('AI pre-filter completed', [
+            'auto_approved' => $preFilterResult['stats']['auto_approved'],
+            'needs_verification' => $preFilterResult['stats']['needs_manual_review'],
+            'auto_rejected' => $preFilterResult['stats']['auto_rejected'],
+            'workload_reduction' => $preFilterResult['stats']['user_workload_reduction']
+        ]);
+
+        // Combine auto-approved with those needing verification
+        $competitorsForUser = array_merge(
+            $preFilterResult['auto_approved'],
+            $preFilterResult['needs_verification']
+        );
+
+        // Step 5: Rank competitors by relevance
+        $rankedCompetitors = $this->rankCompetitors($competitorsForUser, $request->business_idea);
+
+        // Step 6: Sort by quality and relevance
+        $finalCompetitors = $this->validationService->sortByQuality($rankedCompetitors, 'desc');
 
         Log::info('Competitor search completed', [
             'request_id' => $request->id,
-            'competitors_found' => count($rankedCompetitors)
+            'initial_results' => count($searchResults),
+            'after_verification' => count($validSearchResults),
+            'after_deduplication' => count($uniqueCompetitors),
+            'after_ai_filter' => count($competitorsForUser),
+            'auto_rejected_by_ai' => count($preFilterResult['auto_rejected']),
+            'final_count' => count($finalCompetitors)
         ]);
 
-        return $rankedCompetitors;
+        return $finalCompetitors;
     }
 
     /**
@@ -113,22 +164,44 @@ class CompetitorFinderAgent
     }
 
     /**
-     * Process a single search result
+     * Process a single search result with multi-source data enrichment
      */
     private function processSearchResult(array $result, int $requestId): ?array
     {
         try {
             $url = $result['url'];
+            $businessName = $this->cleanBusinessName($result['title']);
 
             // Extract social profiles from website
             $socialProfiles = $this->webScraper->extractSocialProfiles($url);
 
-            // Extract business information
+            // Extract business information from website
             $businessInfo = $this->webScraper->extractBusinessInfo($url);
+
+            // Try to enrich with Google Maps data if available
+            $scraper = app(\App\Services\MarketResearch\SocialMediaScraperService::class);
+            $request = \App\Models\ResearchRequest::find($requestId);
+            
+            if ($request) {
+                $googleMapsData = $scraper->scrapeGoogleMapsData($businessName, $request->location);
+                
+                if ($googleMapsData && $googleMapsData['success']) {
+                    // Enrich with Google Maps data
+                    $businessInfo['phone'] = $businessInfo['phone'] ?? $googleMapsData['phone'];
+                    $businessInfo['address'] = $businessInfo['address'] ?? $googleMapsData['address'];
+                    $businessInfo['rating'] = $googleMapsData['rating'];
+                    $businessInfo['reviews_count'] = $googleMapsData['reviews_count'];
+                    
+                    // If website not found, use Google Maps website
+                    if (!$url || strpos($url, 'google.com') !== false) {
+                        $url = $googleMapsData['website'] ?? $url;
+                    }
+                }
+            }
 
             return [
                 'research_request_id' => $requestId,
-                'business_name' => $this->cleanBusinessName($result['title']),
+                'business_name' => $businessName,
                 'website' => $url,
                 'facebook_handle' => $socialProfiles['facebook'],
                 'instagram_handle' => $socialProfiles['instagram'],
@@ -136,6 +209,7 @@ class CompetitorFinderAgent
                 'linkedin_url' => $socialProfiles['linkedin'],
                 'phone' => $businessInfo['phone'] ?? null,
                 'address' => $businessInfo['address'] ?? null,
+                'category' => $googleMapsData['category'] ?? null,
                 'relevance_score' => 0, // Will be set in ranking
             ];
         } catch (\Exception $e) {

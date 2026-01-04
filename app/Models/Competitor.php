@@ -86,6 +86,14 @@ class Competitor extends Model
     }
 
     /**
+     * Get the feedbacks for the competitor.
+     */
+    public function feedbacks(): HasMany
+    {
+        return $this->hasMany(CompetitorFeedback::class);
+    }
+
+    /**
      * Get social metric for a specific platform.
      */
     public function getMetricForPlatform(string $platform)

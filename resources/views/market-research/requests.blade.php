@@ -92,6 +92,13 @@ async function loadRequests(page = 1) {
                                     </svg>
                                     View Report
                                 </a>
+                            ` : request.status === 'pending_verification' ? `
+                                <a href="/market-research/${request.id}/verify" class="px-4 py-2 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition flex items-center gap-2 animate-pulse">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Verify Data
+                                </a>
                             ` : request.status === 'processing' ? `
                                 <button disabled class="px-4 py-2 bg-gray-100 text-gray-400 font-medium rounded-lg cursor-not-allowed flex items-center gap-2">
                                     <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -174,6 +181,7 @@ function getStatusBadge(status) {
     const badges = {
         'pending': 'bg-yellow-100 text-yellow-800',
         'processing': 'bg-blue-100 text-blue-800',
+        'pending_verification': 'bg-orange-100 text-orange-800',
         'completed': 'bg-green-100 text-green-800',
         'failed': 'bg-red-100 text-red-800'
     };

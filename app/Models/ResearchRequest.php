@@ -89,6 +89,14 @@ class ResearchRequest extends Model
     }
 
     /**
+     * Mark the request as pending verification.
+     */
+    public function markAsPendingVerification(): void
+    {
+        $this->update(['status' => 'pending_verification']);
+    }
+
+    /**
      * Mark the request as completed.
      */
     public function markAsCompleted(): void
@@ -105,5 +113,21 @@ class ResearchRequest extends Model
     public function markAsFailed(): void
     {
         $this->update(['status' => 'failed']);
+    }
+
+    /**
+     * Check if research needs verification.
+     */
+    public function needsVerification(): bool
+    {
+        return $this->status === 'pending_verification';
+    }
+
+    /**
+     * Check if research is verified and completed.
+     */
+    public function isVerified(): bool
+    {
+        return $this->status === 'completed';
     }
 }

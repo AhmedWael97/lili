@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ContentApiController;
 use App\Http\Controllers\Api\AgentApiController;
 use App\Http\Controllers\Api\MarketResearchController;
+use App\Http\Controllers\Api\FeedbackController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,6 +18,24 @@ Route::prefix('market-research')->group(function () {
     Route::get('/{id}/status', [MarketResearchController::class, 'getStatus']);
     Route::get('/{id}/report', [MarketResearchController::class, 'getReport']);
     Route::get('/requests', [MarketResearchController::class, 'listRequests']);
+});
+
+// Feedback API (public for beta testing - add auth later)
+Route::prefix('feedback')->group(function () {
+    // Submit feedback
+    Route::post('/competitor', [FeedbackController::class, 'submitCompetitorFeedback']);
+    Route::post('/batch', [FeedbackController::class, 'batchSubmitFeedback']);
+    
+    // Get feedback stats
+    Route::get('/competitor/{competitorId}', [FeedbackController::class, 'getCompetitorFeedback']);
+    Route::get('/research-request/{researchRequestId}', [FeedbackController::class, 'getResearchRequestFeedback']);
+    Route::get('/export/{researchRequestId}', [FeedbackController::class, 'exportFeedback']);
+    
+    // Learning & Performance
+    Route::get('/performance', [FeedbackController::class, 'getPerformanceDashboard']);
+    Route::get('/thresholds', [FeedbackController::class, 'getThresholds']);
+    Route::post('/learn', [FeedbackController::class, 'triggerLearning']);
+    Route::post('/train', [FeedbackController::class, 'trainModel']);
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {

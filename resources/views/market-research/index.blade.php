@@ -5,7 +5,7 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header Section -->
-    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg p-8 text-white">
+    <div class="bg-gradient-to-r from-lili-500 to-purple-600 rounded-xl shadow-lg p-8 text-white">
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold mb-2">Market Research Intelligence</h1>
@@ -166,9 +166,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch('/api/market-research/requests');
             const data = await response.json();
             
-            if (data.success && data.data.data.length > 0) {
+            console.log('Research requests:', data); // Debug log
+            
+            if (data.success && data.data && data.data.length > 0) {
+                // Sort by created_at descending (newest first)
+                const sortedRequests = data.data.sort((a, b) => 
+                    new Date(b.created_at) - new Date(a.created_at)
+                );
+                
                 const container = document.getElementById('recent-research');
-                container.innerHTML = data.data.data.slice(0, 5).map(request => `
+                container.innerHTML = sortedRequests.slice(0, 5).map(request => `
                     <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                         <div class="flex-1">
                             <h3 class="font-medium text-gray-900">${request.business_idea}</h3>

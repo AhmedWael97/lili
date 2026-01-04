@@ -124,11 +124,11 @@ class ProcessMarketResearch implements ShouldQueue
             ]);
 
             // ============================================
-            // COMPLETE
+            // MARK AS PENDING VERIFICATION
             // ============================================
-            $this->researchRequest->markAsCompleted();
+            $this->researchRequest->markAsPendingVerification();
 
-            Log::info('Market research completed successfully', [
+            Log::info('Market research completed - pending user verification', [
                 'request_id' => $this->researchRequest->id,
                 'competitors_found' => count($savedCompetitors),
                 'report_id' => $report->id,
